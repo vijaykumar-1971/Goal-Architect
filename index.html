@@ -1,1488 +1,1548 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0b0e13" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="description" content="Nurture your most important goals over months and years." />
-  <link rel="manifest" href="manifest.json" />
-  <title>Goal Steward</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#0d0d10"/>
+<link rel="manifest" href="manifest.json"/>
+<title>Goal Steward</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+/* ── TOKENS ─────────────────────────────────── */
+:root {
+  --bg:    #0d0d10;
+  --s1:    #131318;
+  --s2:    #19191f;
+  --s3:    #22222c;
+  --b1:    #2a2a38;
+  --b2:    #36364a;
+  --text:  #eeeef5;
+  --t2:    #8888a5;
+  --t3:    #404058;
+  --font-d:'Cormorant Garamond',Georgia,serif;
+  --font-s:'Inter',system-ui,sans-serif;
+  --nav:   68px;
+  --safe:  env(safe-area-inset-bottom,0px);
+  --r:     12px;
+  --rl:    20px;
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  /* Life area palette — the identity of this app */
+  --career:        #7eb8f7;
+  --health:        #6ee7b0;
+  --relationships: #f9a8d4;
+  --finance:       #fcd34d;
+  --learning:      #c4b5fd;
+  --creative:      #fdba74;
+  --community:     #5eead4;
+  --wellbeing:     #fca5a5;
 
-  <!-- Firebase v9 Compat -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  /* Status */
+  --rising:  #6ee7b0;
+  --amber:   #fdba74;
+  --red:     #f87171;
+  --muted:   #8888a5;
+}
 
-  <style>
-    /* ── Design Tokens ─────────────────────────────── */
-    :root {
-      --bg:         #0b0e13;
-      --surface:    #131820;
-      --card:       #1c2430;
-      --border:     #2a3441;
-      --accent:     #64d4b4;
-      --accent-d:   #3d9e84;
-      --amber:      #f0b429;
-      --red:        #e84040;
-      --green:      #4ade80;
-      --text:       #f1f5f9;
-      --text-2:     #94a3b8;
-      --text-3:     #4a5568;
-      --font-d:     'DM Serif Display', Georgia, serif;
-      --font-s:     'DM Sans', system-ui, sans-serif;
-      --r-sm:       8px;
-      --r-md:       14px;
-      --r-lg:       22px;
-      --nav-h:      72px;
-      --safe-b:     env(safe-area-inset-bottom, 0px);
-    }
+/* ── RESET ──────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;-webkit-text-size-adjust:100%}
+body{
+  min-height:100%;background:var(--bg);color:var(--text);
+  font-family:var(--font-s);font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--b1);border-radius:2px}
 
-    /* ── Reset ─────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { height: 100%; -webkit-text-size-adjust: 100%; }
-    body {
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-s);
-      font-size: 15px;
-      line-height: 1.5;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
-    input, textarea, select { font-family: inherit; font-size: inherit; color: inherit; }
-    img { max-width: 100%; }
-    .hidden { display: none !important; }
-    ::-webkit-scrollbar { width: 3px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+/* ── LOADING ─────────────────────────────────── */
+#loading{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;z-index:999;
+}
+.spin{
+  width:26px;height:26px;border:2px solid var(--b1);
+  border-top-color:var(--community);border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-    /* ── Loading ───────────────────────────────────── */
-    #loading {
-      position: fixed; inset: 0;
-      background: var(--bg);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 999;
-    }
-    .spinner {
-      width: 28px; height: 28px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.65s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+/* ── AUTH ────────────────────────────────────── */
+#view-auth{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:48px 28px 60px;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%,rgba(126,184,247,.07) 0%,transparent 70%),
+    radial-gradient(ellipse 60% 50% at 85% 85%,rgba(196,181,253,.06) 0%,transparent 70%),
+    var(--bg);
+}
+.auth-compass{margin-bottom:32px}
+.auth-wordmark{
+  font-family:var(--font-d);font-size:44px;letter-spacing:-.5px;
+  margin-bottom:10px;text-align:center;font-weight:400;
+}
+.auth-tagline{
+  color:var(--t2);text-align:center;max-width:260px;
+  line-height:1.7;margin-bottom:52px;font-size:14px;
+}
+.btn-google{
+  display:flex;align-items:center;gap:12px;justify-content:center;
+  background:var(--s2);border:1px solid var(--b1);
+  color:var(--text);padding:14px 28px;border-radius:var(--rl);
+  font-size:15px;font-weight:500;width:100%;max-width:280px;
+  transition:background .15s,border-color .15s;
+}
+.btn-google:hover{background:var(--s3);border-color:var(--b2)}
+.auth-note{margin-top:24px;font-size:12px;color:var(--t3);text-align:center}
 
-    /* ── Auth Screen ───────────────────────────────── */
-    #view-auth {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 48px 32px 64px;
-      background:
-        radial-gradient(ellipse 60% 50% at 25% 15%, rgba(100,212,180,.10) 0%, transparent 100%),
-        radial-gradient(ellipse 50% 40% at 80% 85%, rgba(100,212,180,.06) 0%, transparent 100%),
-        var(--bg);
-    }
-    .auth-logo {
-      width: 76px; height: 76px;
-      background: linear-gradient(145deg, var(--accent-d), var(--accent));
-      border-radius: 22px;
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 36px;
-      box-shadow: 0 0 50px rgba(100,212,180,.28), 0 8px 32px rgba(0,0,0,.4);
-    }
-    .auth-wordmark {
-      font-family: var(--font-d);
-      font-size: 38px;
-      letter-spacing: -0.5px;
-      margin-bottom: 14px;
-      text-align: center;
-    }
-    .auth-tagline {
-      color: var(--text-2);
-      text-align: center;
-      max-width: 270px;
-      line-height: 1.65;
-      margin-bottom: 56px;
-      font-size: 15px;
-    }
-    .btn-google {
-      display: flex; align-items: center; gap: 12px;
-      justify-content: center;
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 15px 28px;
-      border-radius: var(--r-lg);
-      font-size: 15px;
-      font-weight: 500;
-      width: 100%; max-width: 300px;
-      transition: background .15s, border-color .15s, transform .1s, box-shadow .15s;
-    }
-    .btn-google:hover { background: #222d3a; border-color: var(--accent-d); box-shadow: 0 0 20px rgba(100,212,180,.12); }
-    .btn-google:active { transform: scale(.97); }
-    .auth-note {
-      margin-top: 28px;
-      font-size: 12px;
-      color: var(--text-3);
-      text-align: center;
-    }
+/* ── SHELL ───────────────────────────────────── */
+#app{max-width:480px;margin:0 auto;min-height:100vh;position:relative}
+#views{padding-bottom:calc(var(--nav) + var(--safe) + 10px)}
+.view{min-height:60vh}
 
-    /* ── App Shell ─────────────────────────────────── */
-    #app {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      max-width: 480px;
-      margin: 0 auto;
-      position: relative;
-    }
-    #views {
-      flex: 1;
-      padding-bottom: calc(var(--nav-h) + var(--safe-b) + 12px);
-    }
-    .view { min-height: 50vh; }
+/* ── BOTTOM NAV ──────────────────────────────── */
+#nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;
+  height:calc(var(--nav) + var(--safe));
+  background:rgba(19,19,24,.96);border-top:1px solid var(--b1);
+  display:flex;align-items:flex-start;padding-top:10px;
+  padding-bottom:var(--safe);z-index:100;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+}
+.nt{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:4px 2px;color:var(--t3);transition:color .2s;
+  font-size:10px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;
+}
+.nt.on{color:var(--text)}
+.nt svg{width:22px;height:22px}
+.nt-pip{width:4px;height:4px;border-radius:50%;background:var(--community);opacity:0;transition:opacity .2s}
+.nt.on .nt-pip{opacity:1}
 
-    /* ── Bottom Nav ────────────────────────────────── */
-    #bottom-nav {
-      position: fixed;
-      bottom: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 100%; max-width: 480px;
-      height: calc(var(--nav-h) + var(--safe-b));
-      background: rgba(19, 24, 32, 0.95);
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: flex-start;
-      padding-top: 10px;
-      padding-bottom: var(--safe-b);
-      z-index: 100;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-    }
-    .nav-tab {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 6px 4px;
-      color: var(--text-3);
-      transition: color .15s;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-    }
-    .nav-tab.active { color: var(--accent); }
-    .nav-tab svg { width: 22px; height: 22px; flex-shrink: 0; }
+/* ── FAB ─────────────────────────────────────── */
+#fab{
+  position:fixed;
+  bottom:calc(var(--nav) + var(--safe) + 16px);
+  right:max(18px,calc(50% - 222px));
+  width:50px;height:50px;
+  background:var(--text);color:var(--bg);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 24px rgba(0,0,0,.6);z-index:101;
+  transition:transform .15s,box-shadow .15s;
+}
+#fab:active{transform:scale(.91);box-shadow:0 2px 12px rgba(0,0,0,.5)}
 
-    /* ── FAB ───────────────────────────────────────── */
-    #fab {
-      position: fixed;
-      bottom: calc(var(--nav-h) + var(--safe-b) + 18px);
-      right: max(20px, calc(50% - 220px));
-      width: 54px; height: 54px;
-      background: linear-gradient(145deg, var(--accent-d), var(--accent));
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 24px rgba(100,212,180,.45);
-      z-index: 101;
-      transition: transform .15s, box-shadow .15s;
-    }
-    #fab:active { transform: scale(.92); box-shadow: 0 2px 12px rgba(100,212,180,.3); }
+/* ── PAGE HEADER ─────────────────────────────── */
+.ph{
+  padding:52px 20px 14px;position:sticky;top:0;z-index:10;
+  background:rgba(13,13,16,.92);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+}
+.ph h1{font-family:var(--font-d);font-size:30px;letter-spacing:-.3px;font-weight:400}
+.ph-sub{color:var(--t2);font-size:13px;margin-top:3px}
+.pc{padding:0 20px}
 
-    /* ── Page Header ───────────────────────────────── */
-    .page-header {
-      padding: 52px 20px 16px;
-      position: sticky; top: 0;
-      background: rgba(11,14,19,.92);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      z-index: 10;
-    }
-    .page-header h1 {
-      font-family: var(--font-d);
-      font-size: 28px;
-      letter-spacing: -.4px;
-    }
-    .page-header .ph-sub { color: var(--text-2); font-size: 13px; margin-top: 2px; }
-    .page-content { padding: 16px 20px 0; }
+/* ── LIFE AREA SYSTEM ────────────────────────── */
+.la-career        {--la:var(--career)}
+.la-health        {--la:var(--health)}
+.la-relationships {--la:var(--relationships)}
+.la-finance       {--la:var(--finance)}
+.la-learning      {--la:var(--learning)}
+.la-creative      {--la:var(--creative)}
+.la-community     {--la:var(--community)}
+.la-wellbeing     {--la:var(--wellbeing)}
 
-    /* ── Goal Card ─────────────────────────────────── */
-    .goal-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--r-md);
-      padding: 16px;
-      margin-bottom: 11px;
-      cursor: pointer;
-      transition: border-color .15s, transform .1s;
-      position: relative;
-      overflow: hidden;
-    }
-    .goal-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      opacity: 0;
-      transition: opacity .2s;
-    }
-    .goal-card:hover::before { opacity: 1; }
-    .goal-card:active { transform: scale(.99); }
-    .gc-head {
-      display: flex;
-      align-items: flex-start;
-      gap: 13px;
-      margin-bottom: 10px;
-    }
+/* ── GOAL CARD ───────────────────────────────── */
+.gc{
+  background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);
+  margin-bottom:10px;cursor:pointer;overflow:hidden;
+  transition:border-color .15s,transform .1s;
+}
+.gc:active{transform:scale(.99)}
+.gc-stripe{height:3px;background:var(--la,var(--t3))}
+.gc-body{padding:14px 16px}
+.gc-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}
+.gc-title{font-size:15px;font-weight:600;line-height:1.3;flex:1}
+.gc-vbadge{
+  flex-shrink:0;font-size:10px;font-weight:600;
+  padding:3px 8px;border-radius:20px;white-space:nowrap;
+}
+.vb-thriving {background:rgba(110,231,176,.12);color:var(--rising)}
+.vb-active   {background:rgba(94,234,212,.10);color:var(--community)}
+.vb-drifting {background:rgba(253,186,116,.10);color:var(--amber)}
+.vb-dormant  {background:rgba(248,113,113,.10);color:var(--red)}
+.gc-ns{
+  font-family:var(--font-d);font-size:14px;font-style:italic;
+  color:var(--t2);line-height:1.45;margin-bottom:9px;
+  display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;
+}
+.gc-obstacle{
+  display:flex;align-items:flex-start;gap:7px;
+  background:rgba(253,186,116,.07);border:1px solid rgba(253,186,116,.2);
+  border-radius:6px;padding:7px 10px;margin-bottom:9px;
+}
+.obs-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.obs-text{font-size:12px;color:var(--amber);line-height:1.4}
+.gc-foot{display:flex;align-items:center;justify-content:space-between}
+.la-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:500;color:var(--la,var(--t2));
+  background:color-mix(in srgb,var(--la,var(--t2)) 10%,transparent);
+  border-radius:20px;padding:2px 9px;
+}
+.gc-age{font-size:11px;color:var(--t3)}
 
-    /* ── Vitality Ring ─────────────────────────────── */
-    .vr-wrap {
-      flex-shrink: 0;
-      width: 46px; height: 46px;
-      position: relative;
-    }
-    .vr-wrap svg { width: 46px; height: 46px; transform: rotate(-90deg); }
-    .vr-track { fill: none; stroke: var(--border); stroke-width: 3.5; }
-    .vr-arc { fill: none; stroke-width: 3.5; stroke-linecap: round; transition: stroke-dashoffset .6s ease, stroke .4s; }
-    .vr-label {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 9px; font-weight: 700;
-      letter-spacing: .02em;
-    }
+/* ── SECTION LABEL ───────────────────────────── */
+.sl{
+  font-size:10px;font-weight:600;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--t3);margin:20px 0 10px;
+}
+.sl:first-child{margin-top:2px}
 
-    /* Vitality states */
-    .vr-thriving .vr-arc,  .dot-thriving  { stroke: var(--green);  }
-    .vr-active .vr-arc,    .dot-active    { stroke: var(--accent); }
-    .vr-drifting .vr-arc,  .dot-drifting  { stroke: var(--amber);  }
-    .vr-dormant .vr-arc,   .dot-dormant   { stroke: var(--red);    }
-    .vr-thriving .vr-label  { color: var(--green);  }
-    .vr-active .vr-label    { color: var(--accent); }
-    .vr-drifting .vr-label  { color: var(--amber);  }
-    .vr-dormant .vr-label   { color: var(--red);    }
-    .bg-thriving { background: var(--green);  }
-    .bg-active   { background: var(--accent); }
-    .bg-drifting { background: var(--amber);  }
-    .bg-dormant  { background: var(--red);    }
-    .text-thriving { color: var(--green);  }
-    .text-active   { color: var(--accent); }
-    .text-drifting { color: var(--amber);  }
-    .text-dormant  { color: var(--red);    }
+/* ── HOME ────────────────────────────────────── */
+.greeting{
+  font-family:var(--font-d);font-size:32px;
+  letter-spacing:-.4px;line-height:1.2;font-weight:400;
+}
+.greeting em{font-style:italic;color:var(--t2)}
+.date-str{font-size:13px;color:var(--t2);margin-top:3px}
 
-    .gc-info { flex: 1; min-width: 0; }
-    .gc-title {
-      font-size: 15px; font-weight: 600;
-      line-height: 1.3; margin-bottom: 5px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .gc-badges { display: flex; gap: 6px; flex-wrap: wrap; }
-    .badge {
-      display: inline-flex; align-items: center;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-size: 11px; font-weight: 500;
-      background: var(--surface);
-      color: var(--text-2);
-      border: 1px solid var(--border);
-      white-space: nowrap;
-    }
-    .badge-cat { color: var(--accent); border-color: rgba(100,212,180,.28); background: rgba(100,212,180,.07); }
-    .gc-desc {
-      font-size: 13px; color: var(--text-2); line-height: 1.5;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-      margin-bottom: 12px;
-    }
-    .gc-foot {
-      display: flex; align-items: center; justify-content: space-between;
-      padding-top: 11px;
-      border-top: 1px solid var(--border);
-    }
-    .gc-status {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 12px; font-weight: 500;
-    }
-    .status-dot { width: 6px; height: 6px; border-radius: 50%; }
-    .gc-updated { font-size: 12px; color: var(--text-3); }
+/* Life Compass */
+.compass-wrap{
+  background:var(--s1);border:1px solid var(--b1);
+  border-radius:var(--rl);padding:20px 20px 16px;margin-bottom:4px;
+}
+.compass-label{
+  font-size:11px;font-weight:500;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--t3);
+  text-align:center;margin-bottom:12px;
+}
+.compass-legend{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:5px;margin-top:14px;
+}
+.cl-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--t2)}
+.cl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 
-    /* ── Section Label ─────────────────────────────── */
-    .section-label {
-      font-size: 11px; font-weight: 700;
-      letter-spacing: .08em; text-transform: uppercase;
-      color: var(--text-3);
-      margin: 22px 0 11px;
-    }
-    .section-label:first-child { margin-top: 0; }
+/* Stats strip */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.sc{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:14px 10px;text-align:center}
+.sc-n{font-family:var(--font-d);font-size:30px;line-height:1;margin-bottom:3px}
+.sc-l{font-size:10px;color:var(--t2);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
 
-    /* ── Home ──────────────────────────────────────── */
-    .greeting {
-      font-family: var(--font-d);
-      font-size: 30px; letter-spacing: -.4px; line-height: 1.2;
-    }
-    .greeting em { color: var(--accent); font-style: italic; }
-    .date-line { font-size: 13px; color: var(--text-2); margin-top: 3px; }
+/* Attention card */
+.attn{
+  background:rgba(253,186,116,.06);border:1px solid rgba(253,186,116,.18);
+  border-radius:var(--r);padding:14px 16px;
+  display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;
+}
+.attn-ico{font-size:20px;flex-shrink:0;margin-top:1px}
+.attn-title{font-size:14px;font-weight:600;color:var(--amber);margin-bottom:3px}
+.attn-desc{font-size:12px;color:var(--t2);line-height:1.5}
 
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin: 18px 0 20px;
-    }
-    .stat-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 14px 10px;
-      text-align: center;
-    }
-    .stat-num {
-      font-size: 30px;
-      font-family: var(--font-d);
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-    .stat-label { font-size: 11px; color: var(--text-2); }
+.es{text-align:center;padding:52px 24px 24px}
+.es-icon{font-size:52px;margin-bottom:18px}
+.es h3{font-family:var(--font-d);font-size:24px;font-weight:400;margin-bottom:8px}
+.es p{color:var(--t2);font-size:14px;max-width:230px;margin:0 auto;line-height:1.65}
 
-    .attention-card {
-      background: rgba(240,180,41,.07);
-      border: 1px solid rgba(240,180,41,.28);
-      border-radius: var(--r-md);
-      padding: 14px 16px;
-      display: flex; align-items: flex-start; gap: 12px;
-      margin-bottom: 16px;
-    }
-    .attention-card .ac-ico { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
-    .attention-card strong { font-size: 14px; font-weight: 600; color: var(--amber); display: block; }
-    .attention-card p { font-size: 12px; color: var(--text-2); margin-top: 2px; line-height: 1.5; }
+/* ── FILTER ROW ──────────────────────────────── */
+.frow{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}
+.frow::-webkit-scrollbar{display:none}
+.fc{
+  flex-shrink:0;padding:6px 13px;border-radius:20px;
+  border:1px solid var(--b1);background:var(--s2);
+  color:var(--t2);font-size:12px;font-weight:500;cursor:pointer;
+  transition:all .15s;white-space:nowrap;
+}
+.fc.on{
+  color:var(--la,var(--community));
+  background:color-mix(in srgb,var(--la,var(--community)) 10%,transparent);
+  border-color:color-mix(in srgb,var(--la,var(--community)) 50%,transparent);
+}
 
-    .empty-state { text-align: center; padding: 56px 24px 24px; }
-    .empty-state .es-icon { font-size: 52px; margin-bottom: 18px; }
-    .empty-state h3 { font-family: var(--font-d); font-size: 22px; margin-bottom: 8px; }
-    .empty-state p { color: var(--text-2); font-size: 14px; max-width: 230px; margin: 0 auto; line-height: 1.6; }
+/* ── GOAL DETAIL ─────────────────────────────── */
+.dh{
+  padding:52px 20px 20px;border-bottom:1px solid var(--b1);
+  position:relative;
+}
+.dh-bar{position:absolute;top:0;left:0;right:0;height:3px;background:var(--la,var(--t3))}
+.back{display:inline-flex;align-items:center;gap:4px;color:var(--t2);font-size:13px;padding:0;margin-bottom:18px}
+.d-title{font-family:var(--font-d);font-size:26px;letter-spacing:-.3px;line-height:1.25;font-weight:400;margin-bottom:10px}
+.d-ns{
+  font-family:var(--font-d);font-size:16px;font-style:italic;
+  color:var(--t2);line-height:1.6;margin-bottom:14px;
+  border-left:2px solid var(--la,var(--t3));padding-left:12px;
+}
+.d-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.badge{
+  display:inline-flex;align-items:center;padding:3px 9px;
+  border-radius:20px;font-size:11px;font-weight:500;
+  background:var(--s2);color:var(--t2);border:1px solid var(--b1);white-space:nowrap;
+}
 
-    /* ── Goal Detail ───────────────────────────────── */
-    .detail-header {
-      padding: 52px 20px 20px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-    }
-    .back-btn {
-      display: inline-flex; align-items: center; gap: 5px;
-      color: var(--accent); font-size: 14px; font-weight: 500;
-      margin-bottom: 22px; padding: 0;
-    }
-    .detail-title {
-      font-family: var(--font-d);
-      font-size: 26px; letter-spacing: -.3px; line-height: 1.25;
-      margin-bottom: 13px;
-    }
-    .detail-meta { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
-    .detail-desc { font-size: 14px; color: var(--text-2); line-height: 1.7; }
-    .detail-btns { display: flex; gap: 9px; margin-top: 20px; flex-wrap: wrap; }
+/* Obstacle block on detail */
+.d-obs-block{
+  background:rgba(253,186,116,.06);border:1px solid rgba(253,186,116,.2);
+  border-radius:var(--r);padding:13px 14px;margin-bottom:12px;
+}
+.d-obs-lbl{font-size:10px;font-weight:600;color:var(--amber);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.d-obs-txt{font-size:13px;color:var(--t2);line-height:1.55}
 
-    .btn-primary {
-      flex: 2;
-      background: linear-gradient(145deg, var(--accent-d), var(--accent));
-      color: #0b0e13;
-      padding: 13px 16px;
-      border-radius: var(--r-md);
-      font-size: 14px; font-weight: 700;
-      text-align: center;
-      white-space: nowrap;
-      transition: opacity .15s, transform .1s;
-      min-width: 0;
-    }
-    .btn-primary:active { opacity: .85; transform: scale(.98); }
-    .btn-outline {
-      flex: 1;
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 13px 14px;
-      border-radius: var(--r-md);
-      font-size: 14px; font-weight: 500;
-      text-align: center;
-      white-space: nowrap;
-      min-width: 0;
-      transition: border-color .15s, transform .1s;
-    }
-    .btn-outline:active { transform: scale(.98); }
-    .btn-danger { color: var(--red); border-color: rgba(232,64,64,.35); background: rgba(232,64,64,.07); }
-    .btn-success { color: var(--green); border-color: rgba(74,222,128,.35); background: rgba(74,222,128,.07); }
-    .btn-amber { color: var(--amber); border-color: rgba(240,180,41,.35); background: rgba(240,180,41,.07); }
+/* Next action on detail */
+.d-next-block{
+  background:rgba(94,234,212,.05);border:1px solid rgba(94,234,212,.15);
+  border-radius:var(--r);padding:13px 14px;margin-bottom:14px;
+}
+.d-next-lbl{font-size:10px;font-weight:600;color:var(--community);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.d-next-txt{font-size:13px;color:var(--t2);line-height:1.55}
 
-    /* ── Detail Stats Bar ──────────────────────────── */
-    .dstats {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 1px; background: var(--border);
-      border-radius: var(--r-sm);
-      overflow: hidden;
-      margin: 20px;
-    }
-    .dstat {
-      background: var(--card);
-      padding: 14px 8px;
-      text-align: center;
-    }
-    .dstat-val { font-size: 20px; font-weight: 700; margin-bottom: 3px; }
-    .dstat-label { font-size: 10px; color: var(--text-2); letter-spacing: .05em; text-transform: uppercase; }
+/* Action buttons row */
+.d-btns{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.d-btns::-webkit-scrollbar{display:none}
+.dab{
+  flex-shrink:0;display:flex;align-items:center;gap:6px;
+  padding:10px 15px;border-radius:var(--r);font-size:13px;font-weight:600;
+  border:1px solid;white-space:nowrap;transition:opacity .15s,transform .1s;
+}
+.dab:active{opacity:.75;transform:scale(.97)}
+.dab-go{background:var(--text);color:var(--bg);border-color:var(--text)}
+.dab-obs{background:rgba(253,186,116,.08);color:var(--amber);border-color:rgba(253,186,116,.3)}
+.dab-win{background:rgba(110,231,176,.08);color:var(--rising);border-color:rgba(110,231,176,.3)}
+.dab-ada{background:rgba(196,181,253,.08);color:var(--learning);border-color:rgba(196,181,253,.3)}
+.dab-ed{background:var(--s2);color:var(--t2);border-color:var(--b1)}
 
-    /* ── Timeline ──────────────────────────────────── */
-    .timeline { padding: 0 20px 32px; }
-    .tl-item { display: flex; gap: 14px; padding-bottom: 20px; }
-    .tl-item:last-child { padding-bottom: 0; }
-    .tl-item:last-child .tl-line { display: none; }
-    .tl-left { display: flex; flex-direction: column; align-items: center; }
-    .tl-dot {
-      width: 34px; height: 34px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px; flex-shrink: 0;
-      background: rgba(255,255,255,.05);
-      border: 1px solid var(--border);
-    }
-    .tl-line { flex: 1; width: 1px; background: var(--border); margin: 5px 0; min-height: 16px; }
-    .tl-body {
-      flex: 1; min-width: 0;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 13px;
-      margin-top: 3px;
-    }
-    .tl-head {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 7px;
-    }
-    .tl-type { font-size: 12px; font-weight: 600; }
-    .tl-date { font-size: 11px; color: var(--text-3); }
-    .tl-text { font-size: 13px; color: var(--text-2); line-height: 1.6; white-space: pre-wrap; }
-    .tl-mood { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-3); margin-top: 7px; }
+/* Detail stats */
+.dstats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--b1);margin:20px;
+  border-radius:var(--r);overflow:hidden;
+}
+.ds{background:var(--s2);padding:14px 6px;text-align:center}
+.ds-v{font-size:18px;font-weight:700;margin-bottom:2px}
+.ds-l{font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.06em}
 
-    /* ── Modals ────────────────────────────────────── */
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,.72);
-      z-index: 200;
-      display: flex; align-items: flex-end; justify-content: center;
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      animation: fadeIn .2s ease;
-    }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .modal {
-      background: var(--surface);
-      border-radius: var(--r-lg) var(--r-lg) 0 0;
-      width: 100%; max-width: 480px;
-      max-height: 92vh;
-      overflow-y: auto;
-      animation: slideUp .25s cubic-bezier(.32,.72,0,1);
-      padding-bottom: var(--safe-b);
-    }
-    @keyframes slideUp { from { transform: translateY(70px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    .modal-handle {
-      width: 36px; height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      margin: 14px auto;
-    }
-    .modal-header { padding: 4px 20px 16px; border-bottom: 1px solid var(--border); }
-    .modal-title { font-family: var(--font-d); font-size: 22px; letter-spacing: -.2px; }
-    .modal-subtitle { font-size: 13px; color: var(--text-2); margin-top: 3px; }
-    .modal-body { padding: 20px; }
-    .modal-footer {
-      padding: 14px 20px;
-      display: flex; gap: 10px;
-      border-top: 1px solid var(--border);
-    }
+/* ── TIMELINE ─────────────────────────────────── */
+.tl{padding:0 20px 36px}
+.tl-item{display:flex;gap:12px;padding-bottom:16px}
+.tl-item:last-child{padding-bottom:0}
+.tl-item:last-child .tl-line{display:none}
+.tl-left{display:flex;flex-direction:column;align-items:center}
+.tl-dot{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;
+  background:var(--s3);border:1px solid var(--b1);
+}
+.tl-line{flex:1;width:1px;background:var(--b1);margin:4px 0;min-height:10px}
+.tl-body{
+  flex:1;min-width:0;background:var(--s2);border:1px solid var(--b1);
+  border-radius:var(--r);padding:12px;margin-top:3px;
+}
+.tl-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.tl-type{font-size:12px;font-weight:600}
+.tl-date{font-size:11px;color:var(--t3)}
+.tl-txt{font-size:13px;color:var(--t2);line-height:1.6;white-space:pre-wrap}
+.tl-pill{
+  display:inline-flex;align-items:center;gap:4px;margin-top:7px;
+  font-size:11px;border-radius:4px;padding:2px 8px;
+}
+.tp-obs{background:rgba(253,186,116,.1);color:var(--amber)}
+.tp-next{background:rgba(94,234,212,.1);color:var(--community)}
+.tp-mom{background:rgba(255,255,255,.05);color:var(--t2)}
 
-    /* ── Forms ─────────────────────────────────────── */
-    .form-group { margin-bottom: 20px; }
-    .form-label {
-      display: block;
-      font-size: 11px; font-weight: 700;
-      letter-spacing: .07em; text-transform: uppercase;
-      color: var(--text-2); margin-bottom: 8px;
-    }
-    .form-input, .form-textarea, .form-select {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      color: var(--text);
-      padding: 12px 14px;
-      font-size: 15px;
-      outline: none;
-      transition: border-color .15s;
-      -webkit-appearance: none; appearance: none;
-    }
-    .form-input::placeholder, .form-textarea::placeholder { color: var(--text-3); }
-    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent); }
-    .form-textarea { resize: vertical; min-height: 108px; line-height: 1.55; }
-    .form-select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
-    }
-    .form-select option { background: var(--surface); }
+/* ── MODALS ──────────────────────────────────── */
+.mo{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);
+  z-index:200;display:flex;align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  animation:fi .2s ease;
+}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--s1);border-radius:var(--rl) var(--rl) 0 0;
+  width:100%;max-width:480px;max-height:93vh;overflow-y:auto;
+  animation:su .25s cubic-bezier(.32,.72,0,1);
+  padding-bottom:calc(var(--safe) + 4px);
+}
+@keyframes su{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.m-handle{width:36px;height:4px;background:var(--b1);border-radius:2px;margin:14px auto}
+.m-head{padding:4px 20px 16px;border-bottom:1px solid var(--b1)}
+.m-title{font-family:var(--font-d);font-size:24px;font-weight:400}
+.m-sub{font-size:13px;color:var(--t2);margin-top:3px}
+.m-body{padding:20px}
+.m-foot{padding:14px 20px;display:flex;gap:9px;border-top:1px solid var(--b1)}
 
-    /* ── Chip selector ─────────────────────────────── */
-    .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip {
-      padding: 7px 14px; border-radius: 20px;
-      border: 1px solid var(--border);
-      background: var(--bg); color: var(--text-2);
-      font-size: 13px; cursor: pointer;
-      transition: all .15s; white-space: nowrap;
-    }
-    .chip.selected {
-      background: rgba(100,212,180,.14);
-      border-color: var(--accent);
-      color: var(--accent); font-weight: 600;
-    }
+/* Wizard */
+.wiz-prog{display:flex;gap:5px;margin-bottom:22px}
+.wp{flex:1;height:3px;border-radius:2px;background:var(--b1);transition:background .3s}
+.wp.done{background:var(--community)}
+.wiz-pane{display:none}
+.wiz-pane.on{display:block}
+.wiz-q{font-family:var(--font-d);font-size:22px;line-height:1.3;font-weight:400;margin-bottom:5px}
+.wiz-hint{font-size:13px;color:var(--t2);margin-bottom:18px;line-height:1.55}
 
-    /* ── Filter row ────────────────────────────────── */
-    .filter-row {
-      display: flex; gap: 7px; overflow-x: auto;
-      padding: 4px 0 8px;
-      scrollbar-width: none;
-    }
-    .filter-row::-webkit-scrollbar { display: none; }
-    .filter-chip {
-      flex-shrink: 0; padding: 6px 13px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--text-2);
-      font-size: 12px; font-weight: 600;
-      cursor: pointer; transition: all .15s;
-    }
-    .filter-chip.active {
-      background: rgba(100,212,180,.13);
-      border-color: var(--accent); color: var(--accent);
-    }
+/* Mood grid */
+.mood-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.mood-btn{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:13px 5px;border-radius:var(--r);border:1px solid var(--b1);
+  background:var(--s2);cursor:pointer;transition:all .15s;
+}
+.mood-btn .mb-e{font-size:24px}
+.mood-btn .mb-l{font-size:10px;color:var(--t2);font-weight:500;text-align:center;line-height:1.3}
+.mood-btn.sel{border-color:var(--community);background:rgba(94,234,212,.08)}
+.mood-btn.sel .mb-l{color:var(--community)}
 
-    /* ── Toast ─────────────────────────────────────── */
-    #toast {
-      position: fixed;
-      bottom: calc(var(--nav-h) + var(--safe-b) + 14px);
-      left: 50%; transform: translateX(-50%) translateY(14px);
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: var(--r-md);
-      padding: 11px 20px;
-      font-size: 13px; font-weight: 500;
-      white-space: nowrap; z-index: 400;
-      opacity: 0; transition: opacity .2s, transform .2s;
-      pointer-events: none; max-width: calc(100vw - 40px);
-    }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* Obstacle grid */
+.obs-grid{display:flex;flex-direction:column;gap:7px}
+.obs-opt{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:var(--r);
+  border:1px solid var(--b1);background:var(--s2);
+  cursor:pointer;transition:all .15s;text-align:left;
+}
+.obs-opt .oo-e{font-size:20px;flex-shrink:0}
+.obs-opt .oo-l{font-size:13px;font-weight:600;margin-bottom:2px}
+.obs-opt .oo-s{font-size:11px;color:var(--t2)}
+.obs-opt.sel{border-color:var(--amber);background:rgba(253,186,116,.07)}
 
-    /* ── Insights bars ─────────────────────────────── */
-    .vit-bar-row { margin-bottom: 14px; }
-    .vit-bar-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); margin-bottom: 6px; }
-    .vit-bar-bg { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-    .vit-bar-fill { height: 100%; border-radius: 3px; transition: width .7s ease; }
+/* Yes/No pair */
+.yn-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.yn-btn{
+  padding:13px;border-radius:var(--r);border:1px solid var(--b1);
+  background:var(--s2);font-size:15px;font-weight:600;cursor:pointer;
+  transition:all .15s;text-align:center;
+}
+.yn-yes.sel{border-color:var(--amber);background:rgba(253,186,116,.08);color:var(--amber)}
+.yn-no.sel{border-color:var(--rising);background:rgba(110,231,176,.08);color:var(--rising)}
 
-    /* ── Profile ───────────────────────────────────── */
-    .profile-card {
-      display: flex; align-items: center; gap: 14px;
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: var(--r-md); padding: 16px;
-      margin-bottom: 12px;
-    }
-    .profile-avatar {
-      width: 48px; height: 48px; border-radius: 50%;
-      background: var(--border); object-fit: cover; flex-shrink: 0;
-    }
-    .profile-name { font-size: 16px; font-weight: 600; }
-    .profile-email { font-size: 13px; color: var(--text-2); }
+/* ── FORMS ───────────────────────────────────── */
+.fg{margin-bottom:18px}
+.fl{display:block;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t2);margin-bottom:7px}
+.fi,.ft,.fs{
+  width:100%;background:var(--bg);border:1px solid var(--b1);
+  border-radius:var(--r);color:var(--text);padding:11px 13px;
+  font-size:15px;outline:none;transition:border-color .15s;
+  -webkit-appearance:none;appearance:none;
+}
+.fi::placeholder,.ft::placeholder{color:var(--t3)}
+.fi:focus,.ft:focus,.fs:focus{border-color:var(--community)}
+.ft{resize:vertical;min-height:96px;line-height:1.55}
+.fs{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23404058' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;
+}
+.fs option{background:var(--s1)}
+.la-chip-g{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.la-chip{
+  display:flex;align-items:center;gap:8px;padding:10px 13px;
+  border-radius:var(--r);border:1px solid var(--b1);
+  background:var(--s2);cursor:pointer;transition:all .15s;font-size:13px;
+}
+.la-chip-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.la-chip.sel{font-weight:500}
+.chip-g{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  padding:7px 13px;border-radius:20px;border:1px solid var(--b1);
+  background:var(--bg);color:var(--t2);font-size:13px;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.chip.sel{background:rgba(94,234,212,.1);border-color:var(--community);color:var(--community);font-weight:500}
 
-    .list-card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: var(--r-md); overflow: hidden; margin-bottom: 12px;
-    }
-    .list-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 13px 16px; border-bottom: 1px solid var(--border);
-      font-size: 14px;
-    }
-    .list-row:last-child { border-bottom: none; }
+/* ── BUTTONS ─────────────────────────────────── */
+.btn-p{
+  background:var(--text);color:var(--bg);padding:13px;
+  border-radius:var(--r);font-size:14px;font-weight:700;
+  text-align:center;flex:2;transition:opacity .15s;
+}
+.btn-p:active{opacity:.85}
+.btn-o{
+  background:var(--s2);color:var(--t2);border:1px solid var(--b1);
+  padding:13px;border-radius:var(--r);font-size:14px;font-weight:500;
+  flex:1;text-align:center;
+}
+.btn-danger{background:rgba(248,113,113,.07);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+.btn-block{width:100%;padding:13px;border-radius:var(--r);font-size:14px;font-weight:600;text-align:center}
+.btn-so{
+  width:100%;background:rgba(248,113,113,.07);color:var(--red);
+  border:1px solid rgba(248,113,113,.25);padding:13px;
+  border-radius:var(--r);font-size:14px;font-weight:600;text-align:center;
+}
 
-    .btn-signout {
-      width: 100%;
-      background: rgba(232,64,64,.08); color: var(--red);
-      border: 1px solid rgba(232,64,64,.3);
-      padding: 14px; border-radius: var(--r-md);
-      font-size: 14px; font-weight: 600; text-align: center;
-      transition: background .15s;
-    }
-    .btn-signout:active { background: rgba(232,64,64,.16); }
+/* ── INSIGHTS ────────────────────────────────── */
+.ic{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:16px;margin-bottom:9px}
+.ic h3{font-family:var(--font-d);font-size:18px;font-weight:400;margin-bottom:4px}
+.ic p{font-size:13px;color:var(--t2);line-height:1.55}
+.vb-row{margin-bottom:12px}
+.vb-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--t2);margin-bottom:5px}
+.vb-bg{height:5px;background:var(--s3);border-radius:3px;overflow:hidden}
+.vb-fill{height:100%;border-radius:3px;transition:width .7s}
 
-    /* ── Desktop tweaks ────────────────────────────── */
-    @media (min-width: 480px) {
-      #app { border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh; }
-      #bottom-nav { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
-    }
-  </style>
+/* ── PROFILE ─────────────────────────────────── */
+.p-card{display:flex;align-items:center;gap:14px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.p-av{width:48px;height:48px;border-radius:50%;background:var(--s3);object-fit:cover}
+.p-name{font-size:16px;font-weight:600}
+.p-email{font-size:12px;color:var(--t2)}
+.lcard{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
+.lr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--b1);font-size:14px}
+.lr:last-child{border-bottom:none}
+.lbadge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500}
+
+/* ── TOAST ───────────────────────────────────── */
+#toast{
+  position:fixed;bottom:calc(var(--nav) + var(--safe) + 12px);
+  left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--s3);border:1px solid var(--b2);
+  border-radius:var(--r);padding:10px 18px;
+  font-size:13px;font-weight:500;z-index:400;
+  opacity:0;transition:opacity .2s,transform .2s;
+  pointer-events:none;white-space:nowrap;max-width:calc(100vw - 40px);
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Wizard complete */
+.wiz-done{text-align:center;padding:8px 0 12px}
+.wd-icon{font-size:52px;margin-bottom:16px}
+.wd-title{font-family:var(--font-d);font-size:26px;font-weight:400;margin-bottom:8px}
+.wd-sub{font-size:14px;color:var(--t2);line-height:1.6}
+
+@media(min-width:480px){
+  #app,#nav{border-left:1px solid var(--b1);border-right:1px solid var(--b1)}
+}
+</style>
 </head>
 <body>
 
-<!-- ── Loading ───────────────────────────────────────── -->
-<div id="loading"><div class="spinner"></div></div>
+<!-- Loading -->
+<div id="loading"><div class="spin"></div></div>
 
-<!-- ── Auth Screen ───────────────────────────────────── -->
+<!-- ── AUTH ──────────────────────────────────── -->
 <div id="view-auth" class="hidden">
-  <div class="auth-logo">
-    <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
-      <path d="M19 5C19 5 10 12 10 21C10 25.9 14.1 30 19 30C23.9 30 28 25.9 28 21C28 12 19 5 19 5Z" fill="rgba(11,14,19,.5)" stroke="rgba(11,14,19,.8)" stroke-width="1.5"/>
-      <path d="M19 11C19 11 14 15.8 14 21C14 23.8 16.2 26 19 26C21.8 26 24 23.8 24 21C24 15.8 19 11 19 11Z" fill="rgba(11,14,19,.4)"/>
-      <line x1="19" y1="30" x2="19" y2="34" stroke="rgba(11,14,19,.8)" stroke-width="2" stroke-linecap="round"/>
-      <line x1="15" y1="33" x2="23" y2="33" stroke="rgba(11,14,19,.8)" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-  </div>
+  <div class="auth-compass" id="auth-compass"></div>
   <h1 class="auth-wordmark">Goal Steward</h1>
-  <p class="auth-tagline">Nurture your most important initiatives over months and years. Nothing vital gets lost.</p>
+  <p class="auth-tagline">Nurture what matters most — across every area of your life — over months and years.</p>
   <button class="btn-google" onclick="signInWithGoogle()">
     <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.84-1.6 2.4v2h2.6c1.5-1.4 2.4-3.4 2.4-5.9 0-.5-.1-1-.17-1.5z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2c-.71.48-1.62.77-2.7.77-2.08 0-3.84-1.4-4.47-3.3H1.84v2.07C3.16 15.1 5.9 17 8.98 17z"/><path fill="#FBBC05" d="M4.51 10.53c-.16-.48-.25-.99-.25-1.53s.09-1.05.25-1.53V5.4H1.84A8.01 8.01 0 001 9c0 1.29.31 2.51.84 3.6l2.67-2.07z"/><path fill="#EA4335" d="M8.98 3.58c1.17 0 2.23.4 3.06 1.2l2.3-2.3C12.95 1.19 11.14.5 8.98.5 5.9.5 3.16 2.4 1.84 5.4l2.67 2.07c.63-1.9 2.39-3.3 4.47-3.3z"/></svg>
     Continue with Google
   </button>
-  <p class="auth-note">Your data stays private — only you can see your goals.</p>
+  <p class="auth-note">Your goals are private — only visible to you.</p>
 </div>
 
-<!-- ── Main App ───────────────────────────────────────── -->
+<!-- ── APP ───────────────────────────────────── -->
 <div id="app" class="hidden">
   <div id="views">
 
     <!-- HOME -->
     <div id="view-home" class="view">
-      <div class="page-header">
-        <div class="greeting">Good <em id="time-of-day">morning</em>,<br><span id="user-first-name">Steward</span></div>
-        <div class="date-line" id="today-date"></div>
+      <div class="ph">
+        <div class="greeting">Good <em id="tod">morning</em>,<br><span id="uname">Steward</span></div>
+        <div class="date-str" id="date-str"></div>
       </div>
-      <div class="page-content">
-        <div class="stats-row">
-          <div class="stat-card">
-            <div class="stat-num text-active" id="stat-active">0</div>
-            <div class="stat-label">Active</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-num" style="color:var(--amber)" id="stat-attention">0</div>
-            <div class="stat-label">Need Tending</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-num text-thriving" id="stat-healthy">0</div>
-            <div class="stat-label">Thriving</div>
-          </div>
+      <div class="pc">
+        <div class="compass-wrap" style="margin-top:16px">
+          <div class="compass-label">Life Balance</div>
+          <div id="compass-svg"></div>
+          <div class="compass-legend" id="compass-legend"></div>
         </div>
-        <div id="home-attention-banner"></div>
-        <div id="home-goals-list"></div>
+        <div style="height:16px"></div>
+        <div class="stats-row">
+          <div class="sc"><div class="sc-n" id="s-active" style="color:var(--community)">0</div><div class="sc-l">Active</div></div>
+          <div class="sc"><div class="sc-n" id="s-attn" style="color:var(--amber)">0</div><div class="sc-l">Need Tending</div></div>
+          <div class="sc"><div class="sc-n" id="s-thriving" style="color:var(--rising)">0</div><div class="sc-l">Thriving</div></div>
+        </div>
+        <div id="home-attn"></div>
+        <div id="home-list"></div>
       </div>
     </div>
 
     <!-- GOALS -->
     <div id="view-goals" class="view hidden">
-      <div class="page-header">
-        <h1>All Goals</h1>
-        <div class="filter-row" id="goals-filter-row" style="margin-top:10px;">
-          <div class="filter-chip active" data-filter="all">All</div>
-          <div class="filter-chip" data-filter="active">Active</div>
-          <div class="filter-chip" data-filter="paused">Paused</div>
-          <div class="filter-chip" data-filter="completed">Completed</div>
+      <div class="ph">
+        <h1>Goals</h1>
+        <div class="frow" id="goals-frow" style="margin-top:10px">
+          <div class="fc on" data-f="all">All</div>
+          <div class="fc la-career" data-f="career">💼 Career</div>
+          <div class="fc la-health" data-f="health">🌿 Health</div>
+          <div class="fc la-relationships" data-f="relationships">❤️ Relationships</div>
+          <div class="fc la-finance" data-f="finance">💰 Finance</div>
+          <div class="fc la-learning" data-f="learning">📚 Learning</div>
+          <div class="fc la-creative" data-f="creative">🎨 Creative</div>
+          <div class="fc la-community" data-f="community">🌍 Community</div>
+          <div class="fc la-wellbeing" data-f="wellbeing">✨ Wellbeing</div>
         </div>
       </div>
-      <div class="page-content" id="goals-list-content"></div>
+      <div class="pc" id="goals-list"></div>
     </div>
 
     <!-- GOAL DETAIL -->
     <div id="view-goal" class="view hidden">
-      <div class="detail-header">
-        <button class="back-btn" onclick="navigate('goals')">
+      <div class="dh" id="dh">
+        <div class="dh-bar" id="dh-bar"></div>
+        <button class="back" onclick="navigate('goals')">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           All Goals
         </button>
-        <h1 class="detail-title" id="detail-title">—</h1>
-        <div class="detail-meta" id="detail-meta"></div>
-        <p class="detail-desc" id="detail-desc">—</p>
-        <div class="detail-btns" id="detail-btns"></div>
+        <h1 class="d-title" id="d-title"></h1>
+        <div class="d-ns" id="d-ns"></div>
+        <div class="d-meta" id="d-meta"></div>
+        <div id="d-obs-block"></div>
+        <div id="d-next-block"></div>
+        <div class="d-btns" id="d-btns"></div>
       </div>
-      <div class="dstats" id="detail-stats"></div>
-      <div class="timeline" id="goal-timeline"></div>
+      <div class="dstats" id="dstats"></div>
+      <div class="tl" id="tl"></div>
     </div>
 
     <!-- INSIGHTS -->
     <div id="view-insights" class="view hidden">
-      <div class="page-header">
-        <h1>Insights</h1>
-        <div class="ph-sub">How your goals are tracking over time</div>
-      </div>
-      <div class="page-content" id="insights-content"></div>
+      <div class="ph"><h1>Insights</h1><div class="ph-sub">Your progress patterns</div></div>
+      <div class="pc" id="insights-c"></div>
     </div>
 
     <!-- PROFILE -->
     <div id="view-profile" class="view hidden">
-      <div class="page-header"><h1>Profile</h1></div>
-      <div class="page-content" id="profile-content"></div>
+      <div class="ph"><h1>Profile</h1></div>
+      <div class="pc" id="profile-c"></div>
     </div>
 
-  </div><!-- /views -->
+  </div>
 
-  <!-- Bottom Nav -->
-  <nav id="bottom-nav">
-    <button class="nav-tab active" data-view="home" onclick="navigate('home')">
+  <nav id="nav">
+    <button class="nt on" data-v="home" onclick="navigate('home')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Home
+      Home<div class="nt-pip"></div>
     </button>
-    <button class="nav-tab" data-view="goals" onclick="navigate('goals')">
+    <button class="nt" data-v="goals" onclick="navigate('goals')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-      Goals
+      Goals<div class="nt-pip"></div>
     </button>
-    <button class="nav-tab" data-view="insights" onclick="navigate('insights')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Insights
+    <button class="nt" data-v="insights" onclick="navigate('insights')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Insights<div class="nt-pip"></div>
     </button>
-    <button class="nav-tab" data-view="profile" onclick="navigate('profile')">
+    <button class="nt" data-v="profile" onclick="navigate('profile')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Profile
+      Profile<div class="nt-pip"></div>
     </button>
   </nav>
 
-  <!-- FAB -->
-  <button id="fab" onclick="showGoalModal()" title="New Goal" aria-label="Add new goal">
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <line x1="11" y1="3" x2="11" y2="19" stroke="#0b0e13" stroke-width="2.5" stroke-linecap="round"/>
-      <line x1="3" y1="11" x2="19" y2="11" stroke="#0b0e13" stroke-width="2.5" stroke-linecap="round"/>
-    </svg>
+  <button id="fab" onclick="showGoalModal()" aria-label="New Goal">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="10" y1="2" x2="10" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="2" y1="10" x2="18" y2="10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
   </button>
 </div>
 
-<!-- ── Modal: Add / Edit Goal ─────────────────────────── -->
-<div id="modal-goal-overlay" class="modal-overlay hidden"
-     onclick="closeOnOverlay(event,'modal-goal-overlay')">
+<!-- ── MODAL: ADD/EDIT GOAL ───────────────────── -->
+<div id="mo-goal" class="mo hidden" onclick="ovrClose(event,'mo-goal')">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title" id="gm-modal-title">New Goal</div>
+    <div class="m-handle"></div>
+    <div class="m-head">
+      <div class="m-title" id="gm-title-lbl">New Goal</div>
+      <div class="m-sub">Define what you're nurturing and why.</div>
     </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Goal Title *</label>
-        <input class="form-input" id="gm-title" type="text" placeholder="What are you working toward?" maxlength="80" autocomplete="off" />
+    <div class="m-body">
+      <div class="fg">
+        <label class="fl">Goal Title *</label>
+        <input class="fi" id="gm-title" type="text" placeholder="What are you working toward?" maxlength="80" autocomplete="off"/>
       </div>
-      <div class="form-group">
-        <label class="form-label">Description *</label>
-        <textarea class="form-textarea" id="gm-desc" placeholder="Describe this goal in depth. What does success look like? Why does it matter to you?" style="min-height:120px;"></textarea>
+      <div class="fg">
+        <label class="fl">North Star — your deeper why *</label>
+        <input class="fi" id="gm-ns" type="text" placeholder="Why does this truly matter to you?" maxlength="120" autocomplete="off"/>
       </div>
-      <div class="form-group">
-        <label class="form-label">Category</label>
-        <select class="form-select" id="gm-category">
-          <option value="Career">Career</option>
-          <option value="Health">Health &amp; Wellness</option>
-          <option value="Finance">Finance</option>
-          <option value="Relationships">Relationships</option>
-          <option value="Learning">Learning</option>
-          <option value="Creative">Creative</option>
-          <option value="Community">Community</option>
-          <option value="Personal Growth">Personal Growth</option>
-          <option value="Other">Other</option>
-        </select>
+      <div class="fg">
+        <label class="fl">Description</label>
+        <textarea class="ft" id="gm-desc" placeholder="What does success look like? What will change when this is achieved?" style="min-height:88px"></textarea>
       </div>
-      <div class="form-group">
-        <label class="form-label">Time Horizon</label>
-        <select class="form-select" id="gm-horizon">
+      <div class="fg">
+        <label class="fl">Life Area *</label>
+        <div class="la-chip-g" id="gm-la-chips"></div>
+      </div>
+      <div class="fg">
+        <label class="fl">Time Horizon</label>
+        <select class="fs" id="gm-horizon">
           <option value="3–6 months">3–6 months</option>
           <option value="6–12 months">6–12 months</option>
-          <option value="1–2 years">1–2 years</option>
+          <option value="1–2 years" selected>1–2 years</option>
           <option value="3–5 years">3–5 years</option>
           <option value="Ongoing">Ongoing / Evergreen</option>
         </select>
       </div>
-      <div class="form-group">
-        <label class="form-label">Check-in Frequency</label>
-        <div class="chip-group" id="gm-freq-chips">
-          <div class="chip" data-val="weekly"    onclick="pickChip(this,'gm-freq-chips')">Weekly</div>
-          <div class="chip selected" data-val="biweekly"  onclick="pickChip(this,'gm-freq-chips')">Bi-weekly</div>
-          <div class="chip" data-val="monthly"   onclick="pickChip(this,'gm-freq-chips')">Monthly</div>
-          <div class="chip" data-val="quarterly" onclick="pickChip(this,'gm-freq-chips')">Quarterly</div>
+      <div class="fg">
+        <label class="fl">Check-in Rhythm</label>
+        <div class="chip-g" id="gm-freq-chips">
+          <div class="chip" data-v="weekly" onclick="pickChip(this,'gm-freq-chips')">Weekly</div>
+          <div class="chip sel" data-v="biweekly" onclick="pickChip(this,'gm-freq-chips')">Bi-weekly</div>
+          <div class="chip" data-v="monthly" onclick="pickChip(this,'gm-freq-chips')">Monthly</div>
+          <div class="chip" data-v="quarterly" onclick="pickChip(this,'gm-freq-chips')">Quarterly</div>
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn-outline" style="flex:1" onclick="hideModal('modal-goal-overlay')">Cancel</button>
-      <button class="btn-primary" style="flex:2" onclick="saveGoal()">Save Goal</button>
+    <div class="m-foot">
+      <button class="btn-o" onclick="hide('mo-goal')">Cancel</button>
+      <button class="btn-p" onclick="saveGoal()">Save Goal</button>
     </div>
   </div>
 </div>
 
-<!-- ── Modal: Stewardship Entry ───────────────────────── -->
-<div id="modal-ci-overlay" class="modal-overlay hidden"
-     onclick="closeOnOverlay(event,'modal-ci-overlay')">
+<!-- ── MODAL: CHECK-IN WIZARD ─────────────────── -->
+<div id="mo-wiz" class="mo hidden" onclick="ovrClose(event,'mo-wiz')">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title">Stewardship Entry</div>
-      <div class="modal-subtitle" id="ci-goal-name">—</div>
+    <div class="m-handle"></div>
+    <div class="m-head">
+      <div class="m-title" id="wiz-goal-name"></div>
+      <div class="m-sub" id="wiz-goal-ns" style="font-family:var(--font-d);font-style:italic;font-size:14px"></div>
     </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Entry Type</label>
-        <div class="chip-group" id="ci-type-chips">
-          <div class="chip selected" data-val="check-in"   onclick="pickChip(this,'ci-type-chips')">✅ Check-in</div>
-          <div class="chip"          data-val="refinement" onclick="pickChip(this,'ci-type-chips')">✏️ Refinement</div>
-          <div class="chip"          data-val="milestone"  onclick="pickChip(this,'ci-type-chips')">🏆 Milestone</div>
-          <div class="chip"          data-val="reflection" onclick="pickChip(this,'ci-type-chips')">💭 Reflection</div>
+    <div class="m-body">
+      <!-- Progress dots -->
+      <div class="wiz-prog" id="wiz-prog"></div>
+
+      <!-- Step 1: Mood -->
+      <div class="wiz-pane on" id="wp1">
+        <div class="wiz-q" id="wiz-q1">How is this goal going?</div>
+        <div class="wiz-hint">Be honest — this is your space for reflection.</div>
+        <div class="mood-grid">
+          <div class="mood-btn" data-v="thriving"    onclick="pickMood(this)"><div class="mb-e">🌱</div><div class="mb-l">Thriving</div></div>
+          <div class="mood-btn" data-v="progressing" onclick="pickMood(this)"><div class="mb-e">⚡</div><div class="mb-l">Moving</div></div>
+          <div class="mood-btn" data-v="steady"      onclick="pickMood(this)"><div class="mb-e">➡️</div><div class="mb-l">Steady</div></div>
+          <div class="mood-btn" data-v="struggling"  onclick="pickMood(this)"><div class="mb-e">😔</div><div class="mb-l">Struggling</div></div>
+          <div class="mood-btn" data-v="pivoting"    onclick="pickMood(this)"><div class="mb-e">🔄</div><div class="mb-l">Adapting</div></div>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Momentum</label>
-        <div class="chip-group" id="ci-mood-chips">
-          <div class="chip"          data-val="stuck"       onclick="pickChip(this,'ci-mood-chips')">😔 Stuck</div>
-          <div class="chip selected" data-val="progressing" onclick="pickChip(this,'ci-mood-chips')">⚡ Progressing</div>
-          <div class="chip"          data-val="thriving"    onclick="pickChip(this,'ci-mood-chips')">🌱 Thriving</div>
+
+      <!-- Step 2: Notes -->
+      <div class="wiz-pane" id="wp2">
+        <div class="wiz-q" id="wiz-q2">What's been happening?</div>
+        <div class="wiz-hint" id="wiz-h2">Share what's on your mind about this goal.</div>
+        <textarea class="ft" id="wiz-notes" placeholder="Write freely..." style="min-height:130px"></textarea>
+      </div>
+
+      <!-- Step 3: Obstacle -->
+      <div class="wiz-pane" id="wp3">
+        <div class="wiz-q">Is anything blocking you?</div>
+        <div class="wiz-hint">Naming obstacles is the first step to resolving them.</div>
+        <div class="yn-pair">
+          <button class="yn-btn yn-yes" id="obs-yes" onclick="pickYN('yes')">Yes, there is</button>
+          <button class="yn-btn yn-no on" id="obs-no" onclick="pickYN('no')">No, I'm clear</button>
+        </div>
+        <div id="obs-detail" class="hidden">
+          <div class="obs-grid" id="obs-type-grid"></div>
+          <div style="height:10px"></div>
+          <input class="fi" id="obs-txt" type="text" placeholder="Describe the obstacle briefly..." autocomplete="off" style="margin-top:4px"/>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Notes *</label>
-        <textarea class="form-textarea" id="ci-content" placeholder="What's happening with this goal? What have you learned, refined, or accomplished?" style="min-height:130px;"></textarea>
+
+      <!-- Step 4: Next action -->
+      <div class="wiz-pane" id="wp4">
+        <div class="wiz-q">What's your next concrete step?</div>
+        <div class="wiz-hint">One specific action bridges intention to momentum.</div>
+        <input class="fi" id="wiz-next" type="text" placeholder="I will…" autocomplete="off"/>
+        <div style="height:10px"></div>
+        <button class="btn-o btn-block" onclick="wizSkip()">Skip — I'll decide later</button>
+      </div>
+
+      <!-- Step 5: Done -->
+      <div class="wiz-pane" id="wp5">
+        <div class="wiz-done">
+          <div class="wd-icon" id="wd-icon">✅</div>
+          <div class="wd-title">Entry saved</div>
+          <div class="wd-sub" id="wd-sub">Your stewardship log has been updated.</div>
+        </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn-outline" style="flex:1" onclick="hideModal('modal-ci-overlay')">Cancel</button>
-      <button class="btn-primary" style="flex:2" onclick="saveEntry()">Save Entry</button>
+    <div class="m-foot" id="wiz-foot">
+      <button class="btn-o" id="wiz-back-btn" onclick="wizBack()">Back</button>
+      <button class="btn-p" id="wiz-next-btn" onclick="wizNext()">Next →</button>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
 <div id="toast"></div>
 
-<!-- ══════════════════════════════════════════════════════
-     FIREBASE CONFIG — Replace ALL values below
-     Get these from: Firebase Console → Project Settings → Your apps
-     ══════════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════
+     FIREBASE CONFIG — Replace with yours
+     ════════════════════════════════════════════ -->
 <script>
 const firebaseConfig = {
-    apiKey: "AIzaSyDrpDfYosfIvCdlXZIVXSNuUQIDCjwKI3A",
-    authDomain: "goal-architect-b0599.firebaseapp.com",
-    databaseURL: "https://goal-architect-b0599-default-rtdb.firebaseio.com",
-    projectId: "goal-architect-b0599",
-    storageBucket: "goal-architect-b0599.firebasestorage.app",
-    messagingSenderId: "941907174276",
-    appId: "1:941907174276:web:511a4d06b6e3b03da473d1",
-    measurementId: "G-BEZ3TL4EJV"
-  };
+    apiKey: "AIzaSyDrpDfYosfIvCdlXZIVXSNuUQIDCjwKI3A",
+    authDomain: "goal-architect-b0599.firebaseapp.com",
+    databaseURL: "https://goal-architect-b0599-default-rtdb.firebaseio.com",
+    projectId: "goal-architect-b0599",
+    storageBucket: "goal-architect-b0599.firebasestorage.app",
+    messagingSenderId: "941907174276",
+    appId: "1:941907174276:web:511a4d06b6e3b03da473d1",
+    measurementId: "G-BEZ3TL4EJV"
+  };
 </script>
-<!-- ══════════════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════ -->
 
 <script>
-// ── Bootstrap Firebase ────────────────────────────────
+/* ── CONSTANTS ──────────────────────────────── */
+const LA = {
+  career:        {label:'Career',        color:'#7eb8f7', icon:'💼'},
+  health:        {label:'Health',        color:'#6ee7b0', icon:'🌿'},
+  relationships: {label:'Relationships', color:'#f9a8d4', icon:'❤️'},
+  finance:       {label:'Finance',       color:'#fcd34d', icon:'💰'},
+  learning:      {label:'Learning',      color:'#c4b5fd', icon:'📚'},
+  creative:      {label:'Creative',      color:'#fdba74', icon:'🎨'},
+  community:     {label:'Community',     color:'#5eead4', icon:'🌍'},
+  wellbeing:     {label:'Wellbeing',     color:'#fca5a5', icon:'✨'},
+};
+const FREQ = {weekly:7,biweekly:14,monthly:30,quarterly:90};
+const OBSTACLES = [
+  {id:'time',      icon:'⏱️', label:'Not enough time',       sub:'Competing priorities or schedule'},
+  {id:'clarity',   icon:'🧭', label:'Direction unclear',      sub:'Unsure of next steps or approach'},
+  {id:'motivation',icon:'🔋', label:'Energy low',             sub:'Motivation or enthusiasm has dipped'},
+  {id:'resources', icon:'🔧', label:'Missing resources',      sub:'Skills, tools, or support needed'},
+  {id:'external',  icon:'🌊', label:'External circumstances', sub:'Factors outside your control'},
+  {id:'other',     icon:'❓', label:'Something else',         sub:"I'll describe it below"},
+];
+const MOOD_Q = {
+  thriving:    {q:'What\'s been working so well?',    h:'Share what\'s driving this momentum.'},
+  progressing: {q:'What\'s been happening?',           h:'Note what you\'ve done and learned.'},
+  steady:      {q:'What\'s keeping you on track?',    h:'Even steady progress deserves recognition.'},
+  struggling:  {q:'What\'s making this hard right now?', h:'Be honest — this is your private space.'},
+  pivoting:    {q:'What are you adapting, and why?',  h:'Pivoting is wisdom, not failure.'},
+};
+const TYPE_INFO = {
+  'check-in':   {e:'✅', c:'var(--community)'},
+  milestone:    {e:'🏆', c:'var(--rising)'},
+  obstacle:     {e:'🚧', c:'var(--amber)'},
+  adaptation:   {e:'🔄', c:'#c4b5fd'},
+  win:          {e:'🎉', c:'var(--rising)'},
+};
+
+/* ── STATE ──────────────────────────────────── */
+const S = {
+  user:null, goals:[], entries:{},
+  view:'home', goalId:null, gFilter:'all',
+  editGoalId:null,
+  wiz:{step:1,goalId:null,mood:null,notes:'',hasObs:false,obsType:null,obsTxt:'',nextAct:''},
+};
+
+/* ── FIREBASE ────────────────────────────────── */
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();
 const gp   = new firebase.auth.GoogleAuthProvider();
+const TS   = () => firebase.firestore.FieldValue.serverTimestamp();
+const INC  = n  => firebase.firestore.FieldValue.increment(n);
 
-// ── App State ─────────────────────────────────────────
-const S = {
-  user:          null,
-  goals:         [],
-  entries:       {},        // goalId → []
-  view:          'home',
-  goalId:        null,
-  filterGoals:   'all',
-  editGoalId:    null,
-  ciGoalId:      null,
-};
-
-// ── Auth ──────────────────────────────────────────────
 auth.onAuthStateChanged(u => {
-  document.getElementById('loading').style.display = 'none';
+  el('loading').style.display = 'none';
   if (u) {
     S.user = u;
-    show('view-auth', false);
-    show('app', true);
-    initApp();
+    show('view-auth',false); show('app',true);
+    init();
   } else {
-    show('view-auth', true);
-    show('app', false);
+    show('view-auth',true); show('app',false);
+    renderAuthCompass();
   }
 });
 
-function signInWithGoogle() {
-  auth.signInWithPopup(gp).catch(() => toast('Sign-in failed — try again.'));
-}
-function signOut() { auth.signOut(); }
+function signInWithGoogle(){auth.signInWithPopup(gp).catch(()=>toast('Sign-in failed — try again.'))}
+function signOut(){auth.signOut()}
 
-// ── Init ──────────────────────────────────────────────
-function initApp() {
-  setGreeting();
+/* ── INIT ────────────────────────────────────── */
+function init() {
+  setGreeting(); buildLaChips(); buildObsGrid();
   db.collection('users').doc(S.user.uid).collection('goals')
-    .orderBy('createdAt', 'desc')
+    .orderBy('createdAt','desc')
     .onSnapshot(snap => {
-      S.goals = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      S.goals = snap.docs.map(d => ({id:d.id,...d.data()}));
       renderCurrent();
-    }, err => console.error('Firestore error', err));
+    }, e => console.error(e));
   navigate('home');
 }
 
-function setGreeting() {
-  const h   = new Date().getHours();
-  const tod = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
-  document.getElementById('time-of-day').textContent = tod;
-  document.getElementById('user-first-name').textContent =
-    S.user.displayName?.split(' ')[0] || 'Steward';
-  document.getElementById('today-date').textContent =
-    new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+function setGreeting(){
+  const h = new Date().getHours();
+  el('tod').textContent = h<12?'morning':h<17?'afternoon':'evening';
+  el('uname').textContent = S.user.displayName?.split(' ')[0] || 'Steward';
+  el('date-str').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 }
 
-// ── Firestore helpers ─────────────────────────────────
-const goalsCol  = () => db.collection('users').doc(S.user.uid).collection('goals');
-const entriesCol = () => db.collection('users').doc(S.user.uid).collection('entries');
-const TS = () => firebase.firestore.FieldValue.serverTimestamp();
-
-async function createGoal(data) {
-  return goalsCol().add({ ...data, status:'active', entryCount:0,
-    createdAt: TS(), lastUpdated: TS(), userId: S.user.uid });
-}
-async function updateGoal(id, data) {
-  return goalsCol().doc(id).update({ ...data, lastUpdated: TS() });
-}
-async function addEntry(data) {
-  await entriesCol().add({ ...data, createdAt: TS(), userId: S.user.uid });
-  await goalsCol().doc(data.goalId).update({
-    lastUpdated: TS(),
-    entryCount: firebase.firestore.FieldValue.increment(1)
-  });
-}
-async function fetchEntries(goalId) {
-  const snap = await entriesCol()
-    .where('goalId','==', goalId)
-    .orderBy('createdAt','desc')
-    .get();
-  S.entries[goalId] = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+function buildLaChips(){
+  el('gm-la-chips').innerHTML = Object.entries(LA).map(([k,v])=>
+    `<div class="la-chip" data-v="${k}" onclick="pickLA(this)" style="border-color:${v.color}22">
+      <div class="la-chip-dot" style="background:${v.color}"></div>
+      <span>${v.icon} ${v.label}</span>
+    </div>`
+  ).join('');
 }
 
-// ── Vitality logic ────────────────────────────────────
-const FREQ_DAYS = { weekly:7, biweekly:14, monthly:30, quarterly:90 };
-
-function vitality(goal) {
-  if (!goal.lastUpdated) return { level:'dormant', label:'DORMANT', pct:10 };
-  const ms      = goal.lastUpdated.toMillis?.() ?? Date.now();
-  const days    = (Date.now() - ms) / 86400000;
-  const target  = FREQ_DAYS[goal.checkInFrequency] || 30;
-  const ratio   = days / target;
-  if (ratio <= 0.5) return { level:'thriving',    label:'THRIVING',    pct:100 };
-  if (ratio <= 1)   return { level:'active',      label:'ACTIVE',      pct:75  };
-  if (ratio <= 2)   return { level:'drifting',    label:'DRIFTING',    pct:38  };
-                    return { level:'dormant',      label:'DORMANT',     pct:12  };
+function buildObsGrid(){
+  el('obs-type-grid').innerHTML = OBSTACLES.map(o=>
+    `<div class="obs-opt" data-v="${o.id}" onclick="pickObs(this)">
+      <div class="oo-e">${o.icon}</div>
+      <div><div class="oo-l">${o.label}</div><div class="oo-s">${o.sub}</div></div>
+    </div>`
+  ).join('');
 }
 
-function vitalityRing(v) {
-  const R    = 17.5;
-  const circ = 2 * Math.PI * R;
-  const dash = (v.pct / 100) * circ;
-  return `<div class="vr-wrap vr-${v.level}">
-    <svg viewBox="0 0 46 46">
-      <circle class="vr-track" cx="23" cy="23" r="${R}"/>
-      <circle class="vr-arc" cx="23" cy="23" r="${R}"
-        stroke-dasharray="${dash.toFixed(2)} ${circ.toFixed(2)}" stroke-dashoffset="0"/>
-    </svg>
-    <div class="vr-label">${v.pct}%</div>
-  </div>`;
+/* ── FIRESTORE ───────────────────────────────── */
+const gRef  = () => db.collection('users').doc(S.user.uid).collection('goals');
+const eRef  = () => db.collection('users').doc(S.user.uid).collection('entries');
+
+async function createGoal(d)  { return gRef().add({...d,status:'active',entryCount:0,adaptCount:0,createdAt:TS(),lastUpdated:TS(),userId:S.user.uid}) }
+async function updateGoal(id,d){ return gRef().doc(id).update({...d,lastUpdated:TS()}) }
+async function fetchEntries(gid){
+  const snap = await eRef().where('goalId','==',gid).orderBy('createdAt','desc').get();
+  S.entries[gid] = snap.docs.map(d=>({id:d.id,...d.data()}));
+}
+async function addEntry(d){
+  await eRef().add({...d,createdAt:TS(),userId:S.user.uid});
+  const upd = {lastUpdated:TS(),entryCount:INC(1)};
+  if (d.type==='adaptation') upd.adaptCount = INC(1);
+  if (d.obstacle) upd.currentObstacle = d.obstacle;
+  else if (d.clearObstacle) upd.currentObstacle = null;
+  if (d.nextAction!==undefined) upd.nextAction = d.nextAction||null;
+  await gRef().doc(d.goalId).update(upd);
 }
 
-// ── Goal Card ─────────────────────────────────────────
-function goalCard(goal) {
-  if (goal.status === 'archived') return '';
-  const v    = vitality(goal);
-  const ms   = goal.lastUpdated?.toMillis?.() ?? 0;
-  const last = ms ? timeAgo(ms) : 'Never updated';
-  const completed = goal.status === 'completed';
-  return `<div class="goal-card" onclick="navigate('goal',{goalId:'${goal.id}'})">
-    <div class="gc-head">
-      ${vitalityRing(v)}
-      <div class="gc-info">
+/* ── VITALITY ────────────────────────────────── */
+function vit(goal){
+  if(!goal.lastUpdated) return {level:'dormant',pct:8,label:'DORMANT'};
+  const ms = goal.lastUpdated.toMillis?.()??Date.now();
+  const days = (Date.now()-ms)/86400000;
+  const target = FREQ[goal.checkInFrequency]||30;
+  const r = days/target;
+  if(r<=0.5) return {level:'thriving', pct:100,label:'THRIVING'};
+  if(r<=1)   return {level:'active',   pct:74, label:'ACTIVE'};
+  if(r<=2)   return {level:'drifting', pct:36, label:'DRIFTING'};
+             return {level:'dormant',  pct:10, label:'DORMANT'};
+}
+const VIT_C = {thriving:'var(--rising)',active:'var(--community)',drifting:'var(--amber)',dormant:'var(--red)'};
+
+/* ── LIFE COMPASS SVG ────────────────────────── */
+function compassSVG(goals, size=180){
+  const areas = Object.keys(LA);
+  const N = areas.length;
+  const CX=100, CY=100;
+  const INNER=26, FULL=76, LABEL_R=92;
+  const GAP=5, SECTOR=(360/N)-GAP;
+
+  function aVit(k){
+    const ag = goals.filter(g=>g.lifeArea===k&&g.status==='active');
+    if(!ag.length) return 0.06;
+    return ag.reduce((s,g)=>s+vit(g).pct/100,0)/ag.length;
+  }
+  function toRad(deg){return deg*Math.PI/180}
+  function pt(cx,cy,r,deg){return [cx+r*Math.cos(toRad(deg)),cy+r*Math.sin(toRad(deg))]}
+
+  const rings=[.33,.66,1].map(f=>{
+    const r=INNER+(FULL-INNER)*f;
+    return `<circle cx="${CX}" cy="${CY}" r="${r.toFixed(1)}" fill="${f===1?'none':'rgba(255,255,255,0.02)'}" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>`;
+  }).join('');
+
+  const sectors = areas.map((k,i)=>{
+    const v=aVit(k);
+    const col=LA[k].color;
+    const startDeg = i*(360/N)-90+GAP/2;
+    const endDeg = startDeg+SECTOR;
+    const outerR = INNER+(FULL-INNER)*v;
+    const lf = SECTOR>180?1:0;
+
+    const [x1i,y1i]=pt(CX,CY,INNER,startDeg);
+    const [x2i,y2i]=pt(CX,CY,INNER,endDeg);
+    const [x1o,y1o]=pt(CX,CY,outerR,startDeg);
+    const [x2o,y2o]=pt(CX,CY,outerR,endDeg);
+
+    const d=`M${x1i.toFixed(2)},${y1i.toFixed(2)} L${x1o.toFixed(2)},${y1o.toFixed(2)} A${outerR.toFixed(2)},${outerR.toFixed(2)},0,${lf},1,${x2o.toFixed(2)},${y2o.toFixed(2)} L${x2i.toFixed(2)},${y2i.toFixed(2)} A${INNER},${INNER},0,${lf},0,${x1i.toFixed(2)},${y1i.toFixed(2)}Z`;
+
+    const midDeg=startDeg+SECTOR/2;
+    const [lx,ly]=pt(CX,CY,LABEL_R,midDeg);
+
+    const hasGoals = goals.filter(g=>g.lifeArea===k&&g.status==='active').length>0;
+    return `<path d="${d}" fill="${col}" opacity="${hasGoals?0.2+v*0.75:0.1}"/>
+    <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="10" opacity="${hasGoals?1:0.3}">${LA[k].icon}</text>`;
+  }).join('');
+
+  return `<svg viewBox="0 0 200 200" width="${size}" height="${size}" style="display:block;margin:0 auto">
+    ${rings}<circle cx="${CX}" cy="${CY}" r="${INNER}" fill="rgba(255,255,255,0.03)"/>
+    ${sectors}
+  </svg>`;
+}
+
+function renderAuthCompass(){
+  const dummy = [];
+  el('auth-compass').innerHTML = compassSVG(dummy, 140);
+}
+
+function compassLegend(goals){
+  return Object.entries(LA).map(([k,v])=>{
+    const ag=goals.filter(g=>g.lifeArea===k&&g.status==='active');
+    return `<div class="cl-item">
+      <div class="cl-dot" style="background:${v.color};opacity:${ag.length?1:0.25}"></div>
+      <span style="opacity:${ag.length?1:0.45}">${v.label}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── GOAL CARD ───────────────────────────────── */
+function goalCard(goal){
+  if(goal.status==='archived') return '';
+  const v=vit(goal);
+  const la=LA[goal.lifeArea]||LA.community;
+  const ms=goal.lastUpdated?.toMillis?.()??0;
+  const done=goal.status==='completed';
+  return `<div class="gc la-${goal.lifeArea||'community'}" onclick="navigate('goal',{goalId:'${goal.id}'})">
+    <div class="gc-stripe"></div>
+    <div class="gc-body">
+      <div class="gc-row1">
         <div class="gc-title">${esc(goal.title)}</div>
-        <div class="gc-badges">
-          <span class="badge badge-cat">${esc(goal.category||'Goal')}</span>
-          <span class="badge">${esc(goal.horizon||'—')}</span>
-          ${completed ? '<span class="badge" style="color:var(--green);border-color:rgba(74,222,128,.3)">✓ Done</span>' : ''}
-        </div>
+        <div class="gc-vbadge vb-${done?'thriving':v.level}">${done?'✓ DONE':v.label}</div>
       </div>
-    </div>
-    <p class="gc-desc">${esc(goal.description||'')}</p>
-    <div class="gc-foot">
-      <div class="gc-status">
-        <span class="status-dot bg-${v.level}"></span>
-        <span class="text-${v.level}" style="font-size:12px;font-weight:600;">${v.label}</span>
+      ${goal.northStar?`<div class="gc-ns">"${esc(goal.northStar)}"</div>`:''}
+      ${goal.currentObstacle&&!done?`<div class="gc-obstacle"><div class="obs-icon">🚧</div><div class="obs-text">${esc(goal.currentObstacle)}</div></div>`:''}
+      <div class="gc-foot">
+        <div class="la-pill">${la.icon} ${la.label}</div>
+        <div class="gc-age">${ms?timeAgo(ms):'Just created'}</div>
       </div>
-      <div class="gc-updated">Updated ${last}</div>
     </div>
   </div>`;
 }
 
-// ── Navigation ────────────────────────────────────────
-function navigate(view, params = {}) {
-  document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
-  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-  S.view   = view;
-  S.goalId = params.goalId || null;
-  const vEl = document.getElementById('view-' + view);
-  if (vEl) vEl.classList.remove('hidden');
-  const tab = document.querySelector(`.nav-tab[data-view="${view}"]`);
-  if (tab) tab.classList.add('active');
-  const fab = document.getElementById('fab');
-  const showFab = ['home','goals'].includes(view);
-  fab.style.display = showFab ? 'flex' : 'none';
-  switch (view) {
-    case 'home':     renderHome();              break;
-    case 'goals':    renderGoals();             break;
+/* ── NAVIGATE ────────────────────────────────── */
+function navigate(view, params={}){
+  document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
+  document.querySelectorAll('.nt').forEach(t=>t.classList.remove('on'));
+  S.view=view; S.goalId=params.goalId||null;
+  el('view-'+view)?.classList.remove('hidden');
+  document.querySelector(`.nt[data-v="${view}"]`)?.classList.add('on');
+  const fab=el('fab');
+  fab.style.display=['home','goals'].includes(view)?'flex':'none';
+  switch(view){
+    case 'home':     renderHome();            break;
+    case 'goals':    renderGoals();           break;
     case 'goal':     renderDetail(params.goalId); break;
-    case 'insights': renderInsights();          break;
-    case 'profile':  renderProfile();           break;
+    case 'insights': renderInsights();        break;
+    case 'profile':  renderProfile();         break;
   }
 }
 
-function renderCurrent() {
-  if (S.view === 'home')     renderHome();
-  else if (S.view === 'goals')    renderGoals();
-  else if (S.view === 'insights') renderInsights();
-  else if (S.view === 'profile')  renderProfile();
+function renderCurrent(){
+  if(S.view==='home')     renderHome();
+  else if(S.view==='goals')    renderGoals();
+  else if(S.view==='insights') renderInsights();
 }
 
-// ── Home ──────────────────────────────────────────────
-function renderHome() {
-  const active   = S.goals.filter(g => g.status === 'active');
-  const neglected = active.filter(g => ['drifting','dormant'].includes(vitality(g).level));
-  const thriving  = active.filter(g => vitality(g).level === 'thriving');
+/* ── HOME ────────────────────────────────────── */
+function renderHome(){
+  const active   = S.goals.filter(g=>g.status==='active');
+  const neglected= active.filter(g=>['drifting','dormant'].includes(vit(g).level));
+  const thriving = active.filter(g=>vit(g).level==='thriving');
 
-  setText('stat-active',    active.length);
-  setText('stat-attention', neglected.length);
-  setText('stat-healthy',   thriving.length);
+  setText('s-active',   active.length);
+  setText('s-attn',     neglected.length);
+  setText('s-thriving', thriving.length);
 
-  const banner = document.getElementById('home-attention-banner');
-  if (neglected.length) {
-    banner.innerHTML = `<div class="attention-card">
-      <div class="ac-ico">🌿</div>
+  el('compass-svg').innerHTML    = compassSVG(S.goals);
+  el('compass-legend').innerHTML = compassLegend(S.goals);
+
+  const attnEl = el('home-attn');
+  if(neglected.length){
+    attnEl.innerHTML=`<div class="attn">
+      <div class="attn-ico">🌿</div>
       <div>
-        <strong>${neglected.length} goal${neglected.length > 1 ? 's' : ''} need${neglected.length === 1 ? 's' : ''} tending</strong>
-        <p>These haven't been updated recently. A quick check-in keeps momentum alive.</p>
+        <div class="attn-title">${neglected.length} goal${neglected.length>1?'s':''} need tending</div>
+        <div class="attn-desc">These haven't been checked in on recently. A few minutes of reflection can reignite momentum.</div>
       </div>
     </div>`;
-  } else {
-    banner.innerHTML = '';
-  }
+  } else attnEl.innerHTML='';
 
-  const list = document.getElementById('home-goals-list');
-  if (!active.length) {
-    list.innerHTML = `<div class="empty-state">
-      <div class="es-icon">🌱</div>
-      <h3>Plant your first goal</h3>
-      <p>Tap <strong>+</strong> to add a long-term goal you want to steward over time.</p>
-    </div>`;
+  const listEl=el('home-list');
+  if(!active.length){
+    listEl.innerHTML=`<div class="es"><div class="es-icon">🌱</div><h3>Plant your first goal</h3><p>Tap <strong>+</strong> to add a long-term goal you want to steward over time.</p></div>`;
     return;
   }
 
-  const order = { dormant:0, drifting:1, active:2, thriving:3 };
-  const sorted = [...active].sort((a,b) => order[vitality(a).level] - order[vitality(b).level]);
-  const badOnes  = sorted.filter(g => ['drifting','dormant'].includes(vitality(g).level));
-  const goodOnes = sorted.filter(g => !['drifting','dormant'].includes(vitality(g).level));
+  const order={dormant:0,drifting:1,active:2,thriving:3};
+  const sorted=[...active].sort((a,b)=>order[vit(a).level]-order[vit(b).level]);
+  const bad=sorted.filter(g=>['drifting','dormant'].includes(vit(g).level));
+  const good=sorted.filter(g=>!['drifting','dormant'].includes(vit(g).level));
 
-  let html = '';
-  if (badOnes.length) {
-    html += '<div class="section-label">Needs Tending</div>';
-    badOnes.forEach(g => html += goalCard(g));
-  }
-  if (goodOnes.length) {
-    html += '<div class="section-label">On Track</div>';
-    goodOnes.forEach(g => html += goalCard(g));
-  }
-  list.innerHTML = html;
+  let html='';
+  if(bad.length){html+='<div class="sl">Needs Tending</div>'; bad.forEach(g=>html+=goalCard(g));}
+  if(good.length){html+='<div class="sl">On Track</div>'; good.forEach(g=>html+=goalCard(g));}
+  listEl.innerHTML=html;
 }
 
-// ── Goals List ────────────────────────────────────────
-function renderGoals() {
-  const f = S.filterGoals;
-  let goals = S.goals.filter(g => g.status !== 'archived');
-  if (f !== 'all') goals = goals.filter(g => g.status === f);
+/* ── GOALS LIST ──────────────────────────────── */
+function renderGoals(){
+  const f=S.gFilter;
+  let goals=S.goals.filter(g=>g.status!=='archived');
+  if(f!=='all') goals=goals.filter(g=>g.lifeArea===f);
 
-  const content = document.getElementById('goals-list-content');
-  if (!goals.length) {
-    content.innerHTML = `<div class="empty-state">
-      <div class="es-icon">${f==='completed'?'🏆':f==='paused'?'⏸️':'🌱'}</div>
-      <h3>${f==='all'?'No goals yet':`No ${f} goals`}</h3>
-      <p>${f==='all'?'Tap + to create your first long-term goal.':
-         `Goals marked as ${f} will appear here.`}</p>
-    </div>`;
-    return;
-  }
-  content.innerHTML = goals.map(goalCard).join('');
+  document.querySelectorAll('#goals-frow .fc').forEach(c=>{
+    c.classList.toggle('on', c.dataset.f===f);
+  });
 
-  // re-bind filter chips
-  document.querySelectorAll('#goals-filter-row .filter-chip').forEach(chip => {
-    chip.onclick = () => {
-      S.filterGoals = chip.dataset.filter;
-      document.querySelectorAll('#goals-filter-row .filter-chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      renderGoals();
-    };
+  el('goals-list').innerHTML = goals.length
+    ? goals.map(goalCard).join('')
+    : `<div class="es"><div class="es-icon">${f==='all'?'🌱':LA[f]?.icon||'🎯'}</div><h3>${f==='all'?'No goals yet':`No ${LA[f]?.label||f} goals`}</h3><p>${f==='all'?'Tap + to create your first long-term goal.':'Goals in this life area will appear here.'}</p></div>`;
+
+  document.querySelectorAll('#goals-frow .fc').forEach(c=>{
+    c.onclick=()=>{ S.gFilter=c.dataset.f; renderGoals(); };
   });
 }
 
-// ── Goal Detail ───────────────────────────────────────
-async function renderDetail(goalId) {
-  const goal = S.goals.find(g => g.id === goalId);
-  if (!goal) { navigate('goals'); return; }
+/* ── GOAL DETAIL ──────────────────────────────── */
+async function renderDetail(goalId){
+  const goal=S.goals.find(g=>g.id===goalId);
+  if(!goal){navigate('goals');return;}
 
-  const v = vitality(goal);
-  const vitalColor = { thriving:'var(--green)', active:'var(--accent)', drifting:'var(--amber)', dormant:'var(--red)' };
-  const typeColors  = { 'check-in':'var(--accent)', refinement:'var(--amber)', milestone:'var(--green)', reflection:'var(--text-2)' };
+  const v=vit(goal);
+  const la=LA[goal.lifeArea]||LA.community;
 
-  setText('detail-title', goal.title);
-  setText('detail-desc',  goal.description || '');
+  el('dh-bar').style.background=la.color;
+  el('dh').className='dh la-'+(goal.lifeArea||'community');
+  setText('d-title',goal.title);
 
-  document.getElementById('detail-meta').innerHTML = `
-    <span class="badge badge-cat">${esc(goal.category||'—')}</span>
+  el('d-ns').textContent=goal.northStar?`"${goal.northStar}"`:'';
+  el('d-ns').style.display=goal.northStar?'':'none';
+  el('d-ns').style.borderLeftColor=la.color;
+
+  const done=goal.status==='completed', paused=goal.status==='paused';
+  el('d-meta').innerHTML=`
+    <span class="badge" style="color:${la.color};border-color:${la.color}44;background:${la.color}11">${la.icon} ${la.label}</span>
     <span class="badge">${esc(goal.horizon||'—')}</span>
-    <span class="badge" style="color:${vitalColor[v.level]};border-color:${vitalColor[v.level]}44;background:${vitalColor[v.level]}11;">${v.label}</span>
-    ${goal.status !== 'active' ? `<span class="badge" style="color:var(--text-3)">${cap(goal.status)}</span>` : ''}
+    <span class="badge" style="color:${VIT_C[v.level]};border-color:${VIT_C[v.level]}44;background:${VIT_C[v.level]}11">${v.label}</span>
+    ${done?'<span class="badge" style="color:var(--rising)">✓ Completed</span>':''}
+    ${paused?'<span class="badge" style="color:var(--t2)">⏸ Paused</span>':''}
   `;
+
+  // Obstacle block
+  const obsEl=el('d-obs-block');
+  if(goal.currentObstacle&&!done){
+    obsEl.innerHTML=`<div class="d-obs-block"><div class="d-obs-lbl">🚧 Current Obstacle</div><div class="d-obs-txt">${esc(goal.currentObstacle)}</div></div>`;
+  } else obsEl.innerHTML='';
+
+  // Next action block
+  const nextEl=el('d-next-block');
+  if(goal.nextAction){
+    nextEl.innerHTML=`<div class="d-next-block"><div class="d-next-lbl">→ Next Action</div><div class="d-next-txt">${esc(goal.nextAction)}</div></div>`;
+  } else nextEl.innerHTML='';
 
   // Action buttons
-  const isActive  = goal.status === 'active';
-  const isPaused  = goal.status === 'paused';
-  const isDone    = goal.status === 'completed';
-  document.getElementById('detail-btns').innerHTML = `
-    ${!isDone ? `<button class="btn-primary" onclick="showCI('${goalId}')">+ Stewardship Entry</button>` : ''}
-    <button class="btn-outline" onclick="showGoalModal('${goalId}')">Edit</button>
-    ${isActive  ? `<button class="btn-outline btn-amber" onclick="setStatus('${goalId}','paused')">Pause</button>` : ''}
-    ${isPaused  ? `<button class="btn-outline btn-success" onclick="setStatus('${goalId}','active')">Resume</button>` : ''}
-    ${!isDone   ? `<button class="btn-outline btn-success" onclick="setStatus('${goalId}','completed')">Complete ✓</button>` : ''}
+  el('d-btns').innerHTML=`
+    ${!done?`<button class="dab dab-go" onclick="showWizard('${goalId}')">✏️ Check In</button>`:''}
+    ${!done?`<button class="dab dab-win" onclick="showWiz_win('${goalId}')">🎉 Log Win</button>`:''}
+    ${!done?`<button class="dab dab-ada" onclick="showWiz_adapt('${goalId}')">🔄 Adapt Plan</button>`:''}
+    <button class="dab dab-ed" onclick="showGoalModal('${goalId}')">Edit</button>
+    ${!done&&!paused?`<button class="dab dab-ed" onclick="setStatus('${goalId}','paused')">⏸ Pause</button>`:''}
+    ${paused?`<button class="dab dab-go" onclick="setStatus('${goalId}','active')">▶ Resume</button>`:''}
+    ${!done?`<button class="dab dab-win" onclick="setStatus('${goalId}','completed')">✓ Complete</button>`:''}
   `;
 
-  // Stats strip
-  const created = goal.createdAt?.toDate?.() || new Date();
-  const days    = Math.max(0, Math.floor((Date.now() - created.getTime()) / 86400000));
-  document.getElementById('detail-stats').innerHTML = `
-    <div class="dstat"><div class="dstat-val">${goal.entryCount||0}</div><div class="dstat-label">Entries</div></div>
-    <div class="dstat"><div class="dstat-val">${days}</div><div class="dstat-label">Days Old</div></div>
-    <div class="dstat"><div class="dstat-val text-${v.level}">${v.pct}%</div><div class="dstat-label">Vitality</div></div>
+  // Stats
+  const created=goal.createdAt?.toDate?.()??new Date();
+  const days=Math.max(0,Math.floor((Date.now()-created.getTime())/86400000));
+  el('dstats').innerHTML=`
+    <div class="ds"><div class="ds-v">${goal.entryCount||0}</div><div class="ds-l">Entries</div></div>
+    <div class="ds"><div class="ds-v">${days}</div><div class="ds-l">Days Old</div></div>
+    <div class="ds"><div class="ds-v" style="color:${VIT_C[v.level]}">${v.pct}%</div><div class="ds-l">Vitality</div></div>
+    <div class="ds"><div class="ds-v" style="color:#c4b5fd">${goal.adaptCount||0}</div><div class="ds-l">Adaptations</div></div>
   `;
 
   // Timeline
-  const tl = document.getElementById('goal-timeline');
-  tl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-3);font-size:13px;">Loading…</div>';
-
+  const tlEl=el('tl');
+  tlEl.innerHTML='<div class="sl">Stewardship Log</div><div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">Loading…</div>';
   await fetchEntries(goalId);
-  const entries = S.entries[goalId] || [];
+  const entries=S.entries[goalId]||[];
 
-  if (!entries.length) {
-    tl.innerHTML = `<div class="empty-state" style="padding:36px 20px;">
-      <div class="es-icon">📝</div>
-      <h3>No entries yet</h3>
-      <p>Tap "Stewardship Entry" to start logging progress, reflections, and milestones.</p>
-    </div>`;
+  if(!entries.length){
+    tlEl.innerHTML=`<div class="sl">Stewardship Log</div><div class="es" style="padding:28px 0"><div class="es-icon">📝</div><h3>No entries yet</h3><p>Check in to start your stewardship log.</p></div>`;
     return;
   }
 
-  const typeEmoji = { 'check-in':'✅', refinement:'✏️', milestone:'🏆', reflection:'💭' };
-  const moodEmoji = { stuck:'😔', progressing:'⚡', thriving:'🌱' };
-
-  tl.innerHTML = '<div class="section-label">Stewardship Log</div>' +
-    entries.map(e => {
-      const tc   = typeColors[e.type] || 'var(--text-2)';
-      const date = e.createdAt?.toDate ? fmtDate(e.createdAt.toDate()) : '—';
-      return `<div class="tl-item">
-        <div class="tl-left">
-          <div class="tl-dot">${typeEmoji[e.type]||'📌'}</div>
-          <div class="tl-line"></div>
-        </div>
-        <div class="tl-body">
-          <div class="tl-head">
-            <span class="tl-type" style="color:${tc}">${cap(e.type||'entry')}</span>
-            <span class="tl-date">${date}</span>
-          </div>
-          <p class="tl-text">${esc(e.content||'')}</p>
-          ${e.mood ? `<div class="tl-mood">${moodEmoji[e.mood]||''} ${cap(e.mood)}</div>` : ''}
-        </div>
-      </div>`;
-    }).join('');
-}
-
-// ── Insights ──────────────────────────────────────────
-function renderInsights() {
-  const active    = S.goals.filter(g => g.status === 'active');
-  const completed = S.goals.filter(g => g.status === 'completed');
-  const total     = S.goals.filter(g => g.status !== 'archived');
-
-  const totalEntries = S.goals.reduce((n, g) => n + (g.entryCount||0), 0);
-
-  const byCat = {};
-  total.forEach(g => { const c = g.category||'Other'; byCat[c] = (byCat[c]||0)+1; });
-  const catList = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
-
-  const vMap = { thriving:0, active:0, drifting:0, dormant:0 };
-  active.forEach(g => vMap[vitality(g).level]++);
-
-  const vitBars = [
-    { label:'Thriving',  count:vMap.thriving,    color:'var(--green)'  },
-    { label:'Active',    count:vMap.active,       color:'var(--accent)' },
-    { label:'Drifting',  count:vMap.drifting,     color:'var(--amber)'  },
-    { label:'Dormant',   count:vMap.dormant,       color:'var(--red)'    },
-  ].map(b => {
-    const pct = active.length ? Math.round(b.count/active.length*100) : 0;
-    return `<div class="vit-bar-row">
-      <div class="vit-bar-meta"><span>${b.label}</span><span>${b.count} (${pct}%)</span></div>
-      <div class="vit-bar-bg"><div class="vit-bar-fill" style="width:${pct}%;background:${b.color};"></div></div>
+  tlEl.innerHTML='<div class="sl">Stewardship Log</div>'+entries.map(e=>{
+    const ti=TYPE_INFO[e.type]||TYPE_INFO['check-in'];
+    const date=e.createdAt?.toDate?fmtDate(e.createdAt.toDate()):'—';
+    return `<div class="tl-item">
+      <div class="tl-left"><div class="tl-dot">${ti.e}</div><div class="tl-line"></div></div>
+      <div class="tl-body">
+        <div class="tl-hd"><span class="tl-type" style="color:${ti.c}">${cap(e.type)}</span><span class="tl-date">${date}</span></div>
+        <p class="tl-txt">${esc(e.content||'')}</p>
+        ${e.obstacle?`<div class="tl-pill tp-obs">🚧 ${esc(e.obstacle)}</div>`:''}
+        ${e.nextAction?`<div class="tl-pill tp-next">→ ${esc(e.nextAction)}</div>`:''}
+        ${e.mood?`<div class="tl-pill tp-mom">${moodEmoji(e.mood)} ${cap(e.mood)}</div>`:''}
+      </div>
     </div>`;
   }).join('');
-
-  const content = document.getElementById('insights-content');
-  content.innerHTML = `
-    <div class="stats-row" style="grid-template-columns:repeat(2,1fr);">
-      <div class="stat-card"><div class="stat-num text-active">${totalEntries}</div><div class="stat-label">Total Entries</div></div>
-      <div class="stat-card"><div class="stat-num text-thriving">${completed.length}</div><div class="stat-label">Completed</div></div>
-    </div>
-
-    <div class="section-label">Goal Vitality</div>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r-md);padding:18px;margin-bottom:8px;">
-      ${active.length ? vitBars : '<p style="font-size:13px;color:var(--text-3);">No active goals yet.</p>'}
-    </div>
-
-    ${catList.length ? `
-    <div class="section-label">By Category</div>
-    <div class="list-card">
-      ${catList.map(([c,n]) => `
-        <div class="list-row">
-          <span>${c}</span>
-          <span class="badge badge-cat">${n}</span>
-        </div>`).join('')}
-    </div>` : ''}
-
-    <div class="section-label">Time Horizons</div>
-    <div class="list-card">
-      ${(() => {
-        const horizons = {};
-        total.forEach(g => { const h = g.horizon||'—'; horizons[h] = (horizons[h]||0)+1; });
-        const hl = Object.entries(horizons).sort((a,b)=>b[1]-a[1]);
-        return hl.length ? hl.map(([h,n]) =>
-          `<div class="list-row"><span>${h}</span><span class="badge">${n}</span></div>`
-        ).join('') : '<div class="list-row" style="color:var(--text-3);">No data yet</div>';
-      })()}
-    </div>
-  `;
 }
 
-// ── Profile ───────────────────────────────────────────
-function renderProfile() {
-  const u  = S.user;
-  const na = S.goals.filter(g=>g.status==='active').length;
-  const nc = S.goals.filter(g=>g.status==='completed').length;
-  const np = S.goals.filter(g=>g.status==='paused').length;
-  document.getElementById('profile-content').innerHTML = `
-    <div class="profile-card">
-      ${u.photoURL ? `<img class="profile-avatar" src="${u.photoURL}" referrerpolicy="no-referrer" />` : '<div class="profile-avatar" style="background:var(--accent-d);display:flex;align-items:center;justify-content:center;font-size:20px;color:#0b0e13;">👤</div>'}
-      <div>
-        <div class="profile-name">${esc(u.displayName||'Steward')}</div>
-        <div class="profile-email">${esc(u.email||'')}</div>
-      </div>
-    </div>
-
-    <div class="section-label">Your Goals</div>
-    <div class="list-card">
-      <div class="list-row"><span>Active</span><span class="badge badge-cat">${na}</span></div>
-      <div class="list-row"><span>Completed</span><span class="badge" style="color:var(--green)">${nc}</span></div>
-      <div class="list-row"><span>Paused</span><span class="badge">${np}</span></div>
-    </div>
-
-    <div class="section-label">About Goal Steward</div>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r-md);padding:18px;margin-bottom:12px;">
-      <p style="font-size:13px;color:var(--text-2);line-height:1.75;">Goal Steward is built around one idea: the things that matter most over years rarely survive without intentional tending. This app gives you a home for long-term initiatives so they don't get buried under daily urgency. Each goal has a <strong>Vitality Ring</strong> — a living indicator of whether you're nurturing it at the pace you intended.</p>
-    </div>
-
-    <div class="section-label">Check-in Guide</div>
-    <div class="list-card">
-      <div class="list-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
-        <strong style="font-size:13px;">✅ Check-in</strong>
-        <span style="font-size:12px;color:var(--text-2);">Routine status update — what's happened since last time?</span>
-      </div>
-      <div class="list-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
-        <strong style="font-size:13px;">✏️ Refinement</strong>
-        <span style="font-size:12px;color:var(--text-2);">Evolving the goal's direction, scope, or definition of success.</span>
-      </div>
-      <div class="list-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
-        <strong style="font-size:13px;">🏆 Milestone</strong>
-        <span style="font-size:12px;color:var(--text-2);">A significant achievement or phase completed.</span>
-      </div>
-      <div class="list-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
-        <strong style="font-size:13px;">💭 Reflection</strong>
-        <span style="font-size:12px;color:var(--text-2);">Deeper thinking: learnings, blockers, or renewed commitment.</span>
-      </div>
-    </div>
-
-    <button class="btn-signout" onclick="signOut()">Sign Out</button>
-    <div style="height:20px;"></div>
-  `;
+/* ── WIZARD ──────────────────────────────────── */
+const WIZ_STEPS=4;
+function showWizard(goalId,overrides={}){
+  const goal=S.goals.find(g=>g.id===goalId);
+  if(!goal) return;
+  S.wiz={step:1,goalId,mood:null,notes:'',hasObs:false,obsType:null,obsTxt:'',nextAct:'',...overrides};
+  el('wiz-goal-name').textContent=goal.title;
+  el('wiz-goal-ns').textContent=goal.northStar?`"${goal.northStar}"`:goal.lifeArea?`${LA[goal.lifeArea].icon} ${LA[goal.lifeArea].label}`:'' ;
+  renderWiz();
+  show('mo-wiz',true);
 }
 
-// ── Goal Modal ────────────────────────────────────────
-function showGoalModal(goalId = null) {
-  S.editGoalId = goalId;
-  document.getElementById('gm-modal-title').textContent = goalId ? 'Edit Goal' : 'New Goal';
+function showWiz_win(goalId){
+  showWizard(goalId,{mood:'thriving'});
+  S.wiz.step=2;
+  el('wiz-q2').textContent="What's the win?";
+  el('wiz-h2').textContent="Celebrate this — you deserve it.";
+  el('wp1').classList.remove('on'); el('wp2').classList.add('on');
+  const goal=S.goals.find(g=>g.id===goalId);
+  if(goal) { S.wiz._type='win'; }
+  renderWiz();
+}
 
-  const freq = goalId ? (S.goals.find(g=>g.id===goalId)?.checkInFrequency || 'monthly') : 'biweekly';
+function showWiz_adapt(goalId){
+  showWizard(goalId,{mood:'pivoting'});
+  S.wiz.step=2;
+  el('wp1').classList.remove('on'); el('wp2').classList.add('on');
+  S.wiz._type='adaptation';
+  renderWiz();
+}
 
-  if (goalId) {
-    const g = S.goals.find(g => g.id === goalId);
-    if (!g) return;
-    document.getElementById('gm-title').value    = g.title || '';
-    document.getElementById('gm-desc').value     = g.description || '';
-    document.getElementById('gm-category').value = g.category || 'Career';
-    document.getElementById('gm-horizon').value  = g.horizon || '1–2 years';
-  } else {
-    document.getElementById('gm-title').value    = '';
-    document.getElementById('gm-desc').value     = '';
-    document.getElementById('gm-category').value = 'Career';
-    document.getElementById('gm-horizon').value  = '1–2 years';
+function renderWiz(){
+  const total=WIZ_STEPS;
+  el('wiz-prog').innerHTML=Array.from({length:total},(_,i)=>
+    `<div class="wp ${i<S.wiz.step?'done':''}"></div>`
+  ).join('');
+
+  // Ensure all panes hidden
+  for(let i=1;i<=5;i++) el('wp'+i)?.classList.remove('on');
+  el('wp'+Math.min(S.wiz.step,5))?.classList.add('on');
+
+  const foot=el('wiz-foot');
+  const backBtn=el('wiz-back-btn');
+  const nextBtn=el('wiz-next-btn');
+
+  if(S.wiz.step===5){
+    foot.innerHTML=`<button class="btn-p" style="flex:1" onclick="hide('mo-wiz')">Done</button>`;
+    return;
   }
 
-  document.querySelectorAll('#gm-freq-chips .chip').forEach(c =>
-    c.classList.toggle('selected', c.dataset.val === freq));
+  foot.innerHTML=`
+    <button class="btn-o" id="wiz-back-btn" onclick="wizBack()">Back</button>
+    <button class="btn-p" id="wiz-next-btn" onclick="wizNext()">
+      ${S.wiz.step===4?'Save':'Next →'}
+    </button>`;
 
-  showModal('modal-goal-overlay');
+  el('wiz-back-btn').style.display=S.wiz.step<=1?'none':'';
 }
 
-async function saveGoal() {
-  const title = document.getElementById('gm-title').value.trim();
-  const desc  = document.getElementById('gm-desc').value.trim();
-  if (!title) { toast('Please add a goal title.'); return; }
-  if (!desc)  { toast('Please describe the goal.'); return; }
+function pickMood(btn){
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  S.wiz.mood=btn.dataset.v;
+  const info=MOOD_Q[btn.dataset.v]||MOOD_Q.progressing;
+  el('wiz-q2').textContent=info.q;
+  el('wiz-h2').textContent=info.h;
+}
 
-  const data = {
-    title,
-    description:       desc,
-    category:          document.getElementById('gm-category').value,
-    horizon:           document.getElementById('gm-horizon').value,
-    checkInFrequency:  chipVal('gm-freq-chips') || 'biweekly',
+function pickYN(choice){
+  S.wiz.hasObs=(choice==='yes');
+  el('obs-yes').classList.toggle('sel',choice==='yes');
+  el('obs-no').classList.toggle('sel',choice==='no');
+  el('obs-yes').classList.toggle('on',choice==='yes');
+  el('obs-no').classList.toggle('on',choice==='no');
+  show('obs-detail',choice==='yes');
+}
+
+function pickObs(btn){
+  document.querySelectorAll('.obs-opt').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  S.wiz.obsType=btn.dataset.v;
+}
+
+async function wizNext(){
+  const step=S.wiz.step;
+
+  if(step===1){
+    if(!S.wiz.mood){toast('Select how it\'s going first.');return;}
+    S.wiz.step=2; renderWiz();
+
+  } else if(step===2){
+    const notes=el('wiz-notes').value.trim();
+    if(!notes){toast('Add a few notes first.');return;}
+    S.wiz.notes=notes;
+    S.wiz.step=3; renderWiz();
+    // Reset YN
+    el('obs-yes').classList.remove('sel','on');
+    el('obs-no').classList.add('sel','on');
+    el('obs-no').classList.add('sel');
+    show('obs-detail',false);
+
+  } else if(step===3){
+    if(S.wiz.hasObs){
+      if(!S.wiz.obsType){toast('Select what type of obstacle it is.');return;}
+      S.wiz.obsTxt=el('obs-txt').value.trim()||el('.obs-opt.sel .oo-l')?.textContent||'';
+    }
+    S.wiz.step=4; renderWiz();
+
+  } else if(step===4){
+    S.wiz.nextAct=el('wiz-next').value.trim();
+    await commitWizard();
+    S.wiz.step=5; renderWiz();
+    renderDoneState();
+  }
+}
+
+function wizBack(){
+  if(S.wiz.step<=1){hide('mo-wiz');return;}
+  S.wiz.step--;renderWiz();
+}
+
+function wizSkip(){S.wiz.nextAct='';wizNext();}
+
+async function commitWizard(){
+  const w=S.wiz;
+  const obsOpt=document.querySelector('.obs-opt.sel .oo-l');
+  const obstacleText=w.hasObs?(obsOpt?obsOpt.textContent+( el('obs-txt').value.trim()?': '+el('obs-txt').value.trim():''): el('obs-txt').value.trim()):null;
+
+  const type=w._type||(w.mood==='pivoting'?'adaptation':w.mood==='thriving'||w.mood==='progressing'?'check-in':'check-in');
+
+  const entry={
+    goalId:w.goalId,type,mood:w.mood,
+    content:w.notes,
+    nextAction:w.nextAct||null,
+    clearObstacle:!w.hasObs,
   };
+  if(obstacleText) entry.obstacle=obstacleText;
 
-  try {
-    if (S.editGoalId) {
-      await updateGoal(S.editGoalId, data);
-      toast('Goal updated ✓');
-    } else {
-      await createGoal(data);
-      toast('Goal created 🌱');
-    }
-    hideModal('modal-goal-overlay');
-  } catch (e) {
-    toast('Error saving — check your connection.');
-    console.error(e);
-  }
+  await addEntry(entry);
+
+  // Refresh detail if open
+  if(S.view==='goal'&&S.goalId===w.goalId) renderDetail(w.goalId);
 }
 
-// ── Check-in Modal ────────────────────────────────────
-function showCI(goalId) {
-  S.ciGoalId = goalId;
-  const g = S.goals.find(g => g.id === goalId);
-  document.getElementById('ci-goal-name').textContent = g?.title || '—';
-  document.getElementById('ci-content').value = '';
-  document.querySelectorAll('#ci-type-chips .chip').forEach(c =>
-    c.classList.toggle('selected', c.dataset.val === 'check-in'));
-  document.querySelectorAll('#ci-mood-chips .chip').forEach(c =>
-    c.classList.toggle('selected', c.dataset.val === 'progressing'));
-  showModal('modal-ci-overlay');
+function renderDoneState(){
+  const icons={thriving:'🌱',progressing:'⚡',steady:'➡️',struggling:'💪',pivoting:'🔄'};
+  const msgs={
+    thriving:'This goal is alive and growing. Keep tending it.',
+    progressing:'Good momentum. Your next check-in is waiting.',
+    steady:'Consistency is underrated. You\'re doing the work.',
+    struggling:'Naming what\'s hard is the first step through it.',
+    pivoting:'Adapting your plan is wisdom, not failure.',
+  };
+  el('wd-icon').textContent=icons[S.wiz.mood]||'✅';
+  el('wd-sub').textContent=msgs[S.wiz.mood]||'Your stewardship log has been updated.';
 }
 
-async function saveEntry() {
-  const content = document.getElementById('ci-content').value.trim();
-  if (!content) { toast('Please add some notes.'); return; }
+/* ── GOAL MODAL ──────────────────────────────── */
+function showGoalModal(goalId=null){
+  S.editGoalId=goalId;
+  el('gm-title-lbl').textContent=goalId?'Edit Goal':'New Goal';
+  const g=goalId?S.goals.find(g=>g.id===goalId):null;
+  el('gm-title').value=g?.title||'';
+  el('gm-ns').value=g?.northStar||'';
+  el('gm-desc').value=g?.description||'';
+  el('gm-horizon').value=g?.horizon||'1–2 years';
 
-  try {
-    await addEntry({
-      goalId:  S.ciGoalId,
-      content,
-      type:    chipVal('ci-type-chips') || 'check-in',
-      mood:    chipVal('ci-mood-chips') || 'progressing',
-    });
-    toast('Entry saved ✓');
-    hideModal('modal-ci-overlay');
-    if (S.view === 'goal' && S.goalId === S.ciGoalId) {
-      renderDetail(S.goalId);
-    }
-  } catch (e) {
-    toast('Error saving — check your connection.');
-    console.error(e);
-  }
-}
+  // Life area chips
+  document.querySelectorAll('.la-chip').forEach(c=>{
+    const k=c.dataset.v;
+    const sel=k===(g?.lifeArea||'');
+    c.classList.toggle('sel',sel);
+    c.style.borderColor=sel?LA[k].color:LA[k].color+'22';
+    c.style.color=sel?LA[k].color:'';
+    c.style.background=sel?LA[k].color+'15':'';
+  });
 
-// ── Status change ─────────────────────────────────────
-async function setStatus(goalId, status) {
-  try {
-    await goalsCol().doc(goalId).update({ status });
-    const labels = { completed:'Completed 🏆', paused:'Goal paused ⏸', active:'Goal resumed ✓' };
-    toast(labels[status] || 'Updated');
-    if (S.view === 'goal') renderDetail(goalId);
-  } catch (e) { toast('Error updating.'); }
+  // Freq chips
+  document.querySelectorAll('#gm-freq-chips .chip').forEach(c=>
+    c.classList.toggle('sel',c.dataset.v===(g?.checkInFrequency||'biweekly')));
+
+  show('mo-goal',true);
 }
 
-// ── UI helpers ────────────────────────────────────────
-function pickChip(el, gid) {
-  document.querySelectorAll(`#${gid} .chip`).forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-}
-function chipVal(gid) {
-  return document.querySelector(`#${gid} .chip.selected`)?.dataset.val || null;
-}
-function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
-function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
-function closeOnOverlay(e, id) { if (e.target.id === id) hideModal(id); }
-
-function show(id, visible) {
-  document.getElementById(id).classList.toggle('hidden', !visible);
-}
-function setText(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = val;
+function pickLA(el){
+  document.querySelectorAll('.la-chip').forEach(c=>{
+    const k=c.dataset.v;
+    c.classList.remove('sel');
+    c.style.borderColor=LA[k].color+'22';
+    c.style.color=''; c.style.background='';
+  });
+  el.classList.add('sel');
+  const k=el.dataset.v;
+  el.style.borderColor=LA[k].color;
+  el.style.color=LA[k].color;
+  el.style.background=LA[k].color+'15';
 }
 
-let toastT;
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastT);
-  toastT = setTimeout(() => el.classList.remove('show'), 2600);
+async function saveGoal(){
+  const title=el('gm-title').value.trim();
+  const ns=el('gm-ns').value.trim();
+  const desc=el('gm-desc').value.trim();
+  const la=document.querySelector('.la-chip.sel')?.dataset.v;
+  const freq=chipVal('gm-freq-chips')||'biweekly';
+  if(!title){toast('Add a goal title.');return;}
+  if(!ns){toast('Add your North Star — the deeper why.');return;}
+  if(!la){toast('Choose a life area.');return;}
+
+  const data={title,northStar:ns,description:desc,lifeArea:la,
+    horizon:el('gm-horizon').value,checkInFrequency:freq};
+  try{
+    if(S.editGoalId){await updateGoal(S.editGoalId,data);toast('Goal updated ✓');}
+    else{await createGoal(data);toast('Goal created 🌱');}
+    hide('mo-goal');
+  } catch(e){toast('Error saving. Check your connection.');console.error(e);}
 }
 
-function esc(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+/* ── INSIGHTS ────────────────────────────────── */
+function renderInsights(){
+  const active=S.goals.filter(g=>g.status==='active');
+  const done=S.goals.filter(g=>g.status==='completed');
+  const total=S.goals.filter(g=>g.status!=='archived');
+  const totalE=S.goals.reduce((s,g)=>s+(g.entryCount||0),0);
+  const totalA=S.goals.reduce((s,g)=>s+(g.adaptCount||0),0);
+
+  const vMap={thriving:0,active:0,drifting:0,dormant:0};
+  active.forEach(g=>vMap[vit(g).level]++);
+
+  const areaHealth=Object.keys(LA).map(k=>{
+    const ag=active.filter(g=>g.lifeArea===k);
+    const avg=ag.length?ag.reduce((s,g)=>s+vit(g).pct/100,0)/ag.length:0;
+    return {key:k,la:LA[k],count:ag.length,avg};
+  }).sort((a,b)=>b.avg-a.avg);
+
+  const obs=active.filter(g=>g.currentObstacle);
+  const obsHtml=obs.length?`
+    <div class="sl">Active Obstacles</div>
+    ${obs.map(g=>`<div class="gc la-${g.lifeArea||'community'}" style="cursor:default">
+      <div class="gc-stripe"></div>
+      <div class="gc-body">
+        <div style="font-size:12px;font-weight:600;color:var(--amber);margin-bottom:4px">🚧 ${esc(g.title)}</div>
+        <div style="font-size:13px;color:var(--t2)">${esc(g.currentObstacle)}</div>
+      </div></div>`).join('')}`:'';
+
+  el('insights-c').innerHTML=`
+    <div style="height:16px"></div>
+    <div class="stats-row" style="grid-template-columns:repeat(2,1fr)">
+      <div class="sc"><div class="sc-n" style="color:var(--community)">${totalE}</div><div class="sc-l">Total Entries</div></div>
+      <div class="sc"><div class="sc-n" style="color:var(--rising)">${done.length}</div><div class="sc-l">Completed</div></div>
+    </div>
+    <div class="stats-row" style="grid-template-columns:repeat(2,1fr)">
+      <div class="sc"><div class="sc-n" style="color:#c4b5fd">${totalA}</div><div class="sc-l">Adaptations</div></div>
+      <div class="sc"><div class="sc-n" style="color:var(--amber)">${obs.length}</div><div class="sc-l">Obstacles Open</div></div>
+    </div>
+
+    <div class="sl">Vitality Breakdown</div>
+    <div class="ic">
+      ${[{l:'Thriving',c:vMap.thriving,col:'var(--rising)'},
+         {l:'Active',c:vMap.active,col:'var(--community)'},
+         {l:'Drifting',c:vMap.drifting,col:'var(--amber)'},
+         {l:'Dormant',c:vMap.dormant,col:'var(--red)'}].map(b=>{
+        const pct=active.length?Math.round(b.c/active.length*100):0;
+        return `<div class="vb-row">
+          <div class="vb-meta"><span>${b.l}</span><span>${b.c} goal${b.c!==1?'s':''} (${pct}%)</span></div>
+          <div class="vb-bg"><div class="vb-fill" style="width:${pct}%;background:${b.col}"></div></div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="sl">Life Area Health</div>
+    <div class="ic">
+      ${areaHealth.map(a=>{
+        const pct=Math.round(a.avg*100);
+        return `<div class="vb-row">
+          <div class="vb-meta"><span>${a.la.icon} ${a.la.label}</span><span>${a.count} active • ${pct}% vitality</span></div>
+          <div class="vb-bg"><div class="vb-fill" style="width:${pct}%;background:${a.la.color};opacity:.8"></div></div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    ${obsHtml}
+    <div style="height:16px"></div>
+  `;
 }
-function cap(s) { return s ? s[0].toUpperCase() + s.slice(1) : ''; }
-function timeAgo(ms) {
-  const d = Math.floor((Date.now() - ms) / 86400000);
-  if (d === 0)  return 'today';
-  if (d === 1)  return 'yesterday';
-  if (d < 7)   return `${d} days ago`;
-  if (d < 30)  return `${Math.floor(d/7)}w ago`;
-  if (d < 365) return `${Math.floor(d/30)}mo ago`;
-  return `${Math.floor(d/365)}y ago`;
+
+/* ── PROFILE ─────────────────────────────────── */
+function renderProfile(){
+  const u=S.user;
+  el('profile-c').innerHTML=`
+    <div style="height:16px"></div>
+    <div class="p-card">
+      ${u.photoURL?`<img class="p-av" src="${u.photoURL}" referrerpolicy="no-referrer"/>`:'<div class="p-av" style="display:flex;align-items:center;justify-content:center;font-size:22px">👤</div>'}
+      <div><div class="p-name">${esc(u.displayName||'Steward')}</div><div class="p-email">${esc(u.email||'')}</div></div>
+    </div>
+
+    <div class="sl">Your Goals</div>
+    <div class="lcard">
+      <div class="lr"><span>Active</span><span class="lbadge" style="background:rgba(94,234,212,.1);color:var(--community)">${S.goals.filter(g=>g.status==='active').length}</span></div>
+      <div class="lr"><span>Completed</span><span class="lbadge" style="background:rgba(110,231,176,.1);color:var(--rising)">${S.goals.filter(g=>g.status==='completed').length}</span></div>
+      <div class="lr"><span>Paused</span><span class="lbadge" style="background:var(--s3);color:var(--t2)">${S.goals.filter(g=>g.status==='paused').length}</span></div>
+    </div>
+
+    <div class="sl">How the check-in works</div>
+    <div class="lcard">
+      ${[['🌱 Thriving / ⚡ Moving','Track what\'s working and lock in the momentum.'],
+         ['➡️ Steady','Acknowledge consistency — it\'s the foundation of long-term progress.'],
+         ['😔 Struggling','Name what\'s hard so it can be addressed, not suppressed.'],
+         ['🔄 Adapting','Log how your plan is evolving — adaptations show wisdom, not failure.']].map(([t,s])=>`
+        <div class="lr" style="flex-direction:column;align-items:flex-start;gap:4px">
+          <strong style="font-size:13px">${t}</strong>
+          <span style="font-size:12px;color:var(--t2);line-height:1.5">${s}</span>
+        </div>`).join('')}
+    </div>
+
+    <div class="sl">About</div>
+    <div style="background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:16px;margin-bottom:12px">
+      <p style="font-family:var(--font-d);font-size:16px;color:var(--t2);line-height:1.75;font-style:italic">"The things that matter most over years rarely survive without intentional tending. Goal Steward gives them a home."</p>
+    </div>
+
+    <button class="btn-so" onclick="signOut()">Sign Out</button>
+    <div style="height:20px"></div>
+  `;
 }
-function fmtDate(d) {
-  return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+
+/* ── STATUS ──────────────────────────────────── */
+async function setStatus(goalId,status){
+  try{
+    await gRef().doc(goalId).update({status});
+    const m={completed:'Goal completed 🏆',paused:'Goal paused ⏸',active:'Goal resumed ▶'};
+    toast(m[status]||'Updated');
+    if(S.view==='goal') renderDetail(goalId);
+  }catch(e){toast('Error updating.')}
 }
+
+/* ── UI HELPERS ──────────────────────────────── */
+function pickChip(btn,gid){
+  document.querySelectorAll(`#${gid} .chip`).forEach(c=>c.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function chipVal(gid){return document.querySelector(`#${gid} .chip.sel`)?.dataset.v||null}
+function show(id,v){el(id).classList.toggle('hidden',!v)}
+function hide(id){el(id).classList.add('hidden')}
+function ovrClose(e,id){if(e.target.id===id)hide(id)}
+function el(id){return document.getElementById(id)}
+function setText(id,v){const e=el(id);if(e)e.textContent=v}
+function moodEmoji(m){return {thriving:'🌱',progressing:'⚡',steady:'➡️',struggling:'😔',pivoting:'🔄'}[m]||''}
+let _tt;
+function toast(msg){
+  const e=el('toast');e.textContent=msg;e.classList.add('on');
+  clearTimeout(_tt);_tt=setTimeout(()=>e.classList.remove('on'),2700);
+}
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function cap(s){return s?s[0].toUpperCase()+s.slice(1):''}
+function timeAgo(ms){
+  const d=Math.floor((Date.now()-ms)/86400000);
+  if(!d)return 'today';if(d===1)return 'yesterday';
+  if(d<7)return d+'d ago';if(d<30)return Math.floor(d/7)+'w ago';
+  if(d<365)return Math.floor(d/30)+'mo ago';return Math.floor(d/365)+'y ago';
+}
+function fmtDate(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
 </script>
 </body>
 </html>
